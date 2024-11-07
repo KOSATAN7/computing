@@ -37,7 +37,8 @@ class FilmsController extends Controller
 
         return response()->json([
             'message' => 'Sukses mengambil data.',
-            'data' => $venue
+            'code' => 200,
+            'payload' => new FilmsResources($venue)
         ], 200);
     }
 
@@ -47,7 +48,8 @@ class FilmsController extends Controller
 
         return response()->json([
             'message' => 'Sukses membuat data.',
-            'data' => $venue
+            'code' => 201,
+            'payload' => new FilmsResources($venue)
         ], 201);
     }
 
@@ -65,7 +67,8 @@ class FilmsController extends Controller
 
         return response()->json([
             'message' => 'Sukses mengupdate data.',
-            'data' => $venue
+            'code' => 200,
+            'payload' => new FilmsResources($venue)
         ], 200);
     }
 
@@ -82,7 +85,8 @@ class FilmsController extends Controller
         $venue->delete();
 
         return response()->json([
-            'message' => 'Sukses menghapus data.'
+            'message' => 'Sukses menghapus data.',
+            'code' => 200,
         ], 200);
     }
 }

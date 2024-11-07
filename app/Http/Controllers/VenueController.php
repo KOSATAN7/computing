@@ -39,7 +39,7 @@ class VenueController extends Controller
         return response()->json([
             'message' => 'Sukses mengambil data.',
             'code' => 200,
-            'payload' => VenueResources::collection($venue)
+            'payload' => new VenueResources($venue)
         ], 200);
     }
 
@@ -69,7 +69,8 @@ class VenueController extends Controller
 
         return response()->json([
             'message' => 'Sukses mengupdate data.',
-            'code' => 200
+            'code' => 200,
+            'payload' => new VenueResources($venue)
         ], 200);
     }
 

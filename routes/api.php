@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\VenueController;
 use App\Http\Controllers\FilmsController;
+use App\Http\Controllers\KategoriController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/venue', [VenueController::class, 'index']);
@@ -15,3 +16,8 @@ Route::post('/film', [FilmsController::class, 'store']);
 Route::get('/film/{id}', [FilmsController::class, 'show']);
 Route::put('/film/{id}', [FilmsController::class, 'update']);
 Route::delete('/film/{id}', [FilmsController::class, 'delete']);
+
+Route::get('/kategori', [KategoriController::class, 'index']);
+Route::post('/kategori', [KategoriController::class, 'store']);
+Route::put('/kategori/{id}', [KategoriController::class, 'update']);
+Route::delete('/kategori/{id}', [KategoriController::class, 'delete']);

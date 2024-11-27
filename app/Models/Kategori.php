@@ -12,5 +12,9 @@ class Kategori extends Model
         'nama'
     ];
 
+    public function films()
+    {
+        return $this->hasMany(Films::class, 'kategori','id'); // 'kategori' adalah foreign key
+    }
     
 }

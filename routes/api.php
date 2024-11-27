@@ -14,6 +14,7 @@ Route::delete('/venue/{id}', [VenueController::class, 'delete']);
 Route::get('/film', [FilmsController::class, 'index']);
 Route::post('/film', [FilmsController::class, 'store']);
 Route::get('/film/{id}', [FilmsController::class, 'show']);
+Route::get('/film-by-kategori/{id}', [FilmsController::class, 'showByKategori']);
 Route::put('/film/{id}', [FilmsController::class, 'update']);
 Route::delete('/film/{id}', [FilmsController::class, 'delete']);
 

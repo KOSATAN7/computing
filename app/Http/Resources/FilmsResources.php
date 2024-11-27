@@ -17,7 +17,10 @@ class FilmsResources extends JsonResource
         return [
             'id' => $this->id,
             'judul' => $this->judul,
-            'kategori' => $this->kategori,
+            'kategori' => [
+                'id' => $this->id,
+                'nama_kategori' => $this->kategori()->first()?->nama,
+            ],
             'jadwal' => $this->jadwal,
             'harga' => $this->harga,
             'status' => $this->status,

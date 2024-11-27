@@ -10,9 +10,14 @@ class Films extends Model
 
     protected $fillable = [
         'judul',
-        'kategori',
+        'kategori', 
         'jadwal',
         'harga',
         'status'
     ];
+
+    public function kategori()
+    {
+        return $this->belongsTo(Kategori::class, 'kategori'); // 'kategori' adalah foreign key
+    }
 }

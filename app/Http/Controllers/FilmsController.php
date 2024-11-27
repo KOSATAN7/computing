@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Films;
 use App\Http\Resources\FilmsResources;
+use App\Models\Kategori;
 use Illuminate\Http\Request;
 
 class FilmsController extends Controller
@@ -20,7 +21,7 @@ class FilmsController extends Controller
 
         return response()->json([
             'message' => 'Sukses mengambil data.',
-            'data' => $venues,
+            'code' => 200 ,
             'payload' => FilmsResources::collection($venues)
         ], 200);
     }
@@ -42,14 +43,58 @@ class FilmsController extends Controller
         ], 200);
     }
 
+    public function showByKategori($id_kategori)
+{
+    // Cari kategori berdasarkan ID
+    $kategori = Kategori::find($id_kategori);
+
+    if (!$kategori) {
+        return response()->json([
+            'message' => 'Kategori tidak ditemukan.'
+        ], 404);
+    }
+
+    // Ambil film berdasarkan kategori
+    $films = Films::where('kategori', $id_kategori)->with('kategori')->get();
+
+    if ($films->isEmpty()) {
+        return response()->json([
+            'message' => 'Tidak ada film yang ditemukan untuk kategori ini.'
+        ], 404);
+    }
+
+    // Return response menggunakan resource
+    return response()->json([
+        'message' => 'Sukses mengambil data film berdasarkan kategori.',
+        'kategori' => $kategori->nama, // Menampilkan nama kategori
+        'payload' => FilmsResources::collection($films)
+    ], 200);
+}
+
     public function store(Request $request)
     {
-        $venue = Films::create($request->all());
+        // Validasi input
+        $request->validate([
+            'judul' => 'required|string|max:255',
+            'kategori' => 'required|exists:kategoris,id', // Validasi kategori harus ada di tabel kategoris
+            'jadwal' => 'required|integer',
+            'harga' => 'required|string|max:255',
+            'status' => 'required|in:comingsoon,ongoing,outdate',
+        ]);
 
+        // Buat film
+        $film = Films::create([
+            'judul' => $request->judul,
+            'kategori' => $request->kategori, // ID kategori
+            'jadwal' => $request->jadwal,
+            'harga' => $request->harga,
+            'status' => $request->status,
+        ]);
+
+        // Return response
         return response()->json([
-            'message' => 'Sukses membuat data.',
-            'code' => 201,
-            'payload' => new FilmsResources($venue)
+            'message' => 'Film berhasil dibuat.',
+            'data' => $film
         ], 201);
     }
 

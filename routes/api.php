@@ -9,7 +9,8 @@ Route::get('/venue', [VenueController::class, 'index']);
 Route::post('/venue', [VenueController::class, 'store']);
 Route::get('/venue/{id}', [VenueController::class, 'show']);
 Route::put('/venue/{id}', [VenueController::class, 'update']);
-Route::delete('/venue/{id}', [VenueController::class, 'delete']);
+Route::post('/venue-by-film/{filmId}', [VenueController::class, 'addFilmsToVenue']);
+Route::get('/venues-by-film/{filmId}', [VenueController::class, 'getVenuesByFilm']);
 
 Route::get('/film', [FilmsController::class, 'index']);
 Route::post('/film', [FilmsController::class, 'store']);

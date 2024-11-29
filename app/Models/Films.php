@@ -6,7 +6,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class Films extends Model
 {
-    protected $table = 'film';
+    protected $table = 'films';
 
     protected $fillable = [
         'judul',
@@ -20,4 +20,8 @@ class Films extends Model
     {
         return $this->belongsTo(Kategori::class, 'kategori'); // 'kategori' adalah foreign key
     }
+    public function venues()
+{
+    return $this->belongsToMany(Venue::class, 'film_venue', 'film_id', 'venue_id');
+}
 }

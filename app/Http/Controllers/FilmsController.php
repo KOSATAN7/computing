@@ -73,25 +73,25 @@ class FilmsController extends Controller
 
     public function store(Request $request)
     {
-        // Validasi input
+
         $request->validate([
             'judul' => 'required|string|max:255',
-            'kategori' => 'required|exists:kategoris,id', // Validasi kategori harus ada di tabel kategoris
+            'kategori' => 'required|exists:kategoris,id',
             'jadwal' => 'required|integer',
             'harga' => 'required|string|max:255',
             'status' => 'required|in:comingsoon,ongoing,outdate',
         ]);
 
-        // Buat film
+
         $film = Films::create([
             'judul' => $request->judul,
-            'kategori' => $request->kategori, // ID kategori
+            'kategori' => $request->kategori, 
             'jadwal' => $request->jadwal,
             'harga' => $request->harga,
             'status' => $request->status,
         ]);
 
-        // Return response
+        
         return response()->json([
             'message' => 'Film berhasil dibuat.',
             'data' => $film

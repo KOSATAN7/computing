@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Http\Resources\VenueResources;
 use App\Models\Venue;
+use App\Models\Films;
 use Illuminate\Http\Request;
 
 class VenueController extends Controller
@@ -71,6 +72,44 @@ class VenueController extends Controller
             'message' => 'Sukses mengupdate data.',
             'code' => 200,
             'payload' => new VenueResources($venue)
+        ], 200);
+    }
+
+    public function addFilmsToVenue(Request $request, $venueId)
+{
+    $venue = Venue::find($venueId);
+
+    if (!$venue) {
+        return response()->json(['message' => 'Venue tidak ditemukan.'], 404);
+    }
+
+    $validatedData = $request->validate([
+        'film_ids' => 'required|array',
+        'film_ids.*' => 'exists:films,id',
+    ]);
+
+    $venue->films()->syncWithoutDetaching($validatedData['film_ids']);
+
+    return response()->json([
+        'message' => 'Film berhasil ditambahkan ke venue.',
+        'venue' => $venue->load('films'),
+    ], 200);
+}
+
+
+    public function getVenuesByFilm($filmId)
+    {
+        $film = Films::find($filmId);
+
+        if (!$film) {
+            return response()->json(['message' => 'Film tidak ditemukan.'], 404);
+        }
+
+        $venues = $film->venues;
+
+        return response()->json([
+            'message' => 'Berhasil mengambil data venue berdasarkan film.',
+            'venues' => $venues,
         ], 200);
     }
 

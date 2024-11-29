@@ -11,14 +11,10 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('films', function (Blueprint $table) {
-            $table->id()->unique();
-            $table->string('judul');
-            $table->string('kategori');
-            $table->integer('jadwal');
-            $table->string('harga');
-            $table->enum('status',['comingsoon','ongoing','outdate']);
-
+        Schema::create('film_venue', function (Blueprint $table) {
+            $table->id();
+            $table->foreignId('venue_id')->constrained()->onDelete('cascade');
+            $table->foreignId('film_id')->constrained()->onDelete('cascade');
             $table->timestamps();
         });
     }
@@ -28,6 +24,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('films');
+        Schema::dropIfExists('film_venue');
     }
 };

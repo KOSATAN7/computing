@@ -21,8 +21,7 @@ return new class extends Migration
             $table->string('kontak');
             $table->integer('kapasitas');
             $table->string('fasilitas')->nullable();
-            $table->enum('status',['tersedia','tidak_tersedia']);
-            // $table->foreignId('created_by')->constrained('users')->onDelete('cascade');
+            $table->enum('status', ['tersedia', 'tidak_tersedia']);
             $table->timestamps();
         });
     }

@@ -18,4 +18,9 @@ class Venue extends Model
         'foto',
         'video',
     ];
+
+    public function films()
+{
+    return $this->belongsToMany(Films::class, 'film_venue', 'venue_id', 'film_id');
+}
 }

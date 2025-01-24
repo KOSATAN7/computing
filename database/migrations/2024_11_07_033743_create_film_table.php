@@ -9,19 +9,19 @@ return new class extends Migration
     /**
      * Run the migrations.
      */
-    public function up(): void
-    {
-        Schema::create('films', function (Blueprint $table) {
-            $table->id()->unique();
-            $table->string('judul');
-            $table->string('kategori');
-            $table->integer('jadwal');
-            $table->string('harga');
-            $table->enum('status',['comingsoon','ongoing','outdate']);
+   public function up(): void
+{ 
+    Schema::create('films', function (Blueprint $table) {
+        $table->id(); // Primary key
+        $table->string('judul'); // Judul film
+        $table->string('kategori'); // Kategori film
+        $table->date('jadwal'); // Tanggal jadwal film
+        $table->integer('harga'); // Harga tiket
+        $table->enum('status', ['comingsoon', 'ongoing', 'outdate'])->default('comingsoon'); // Status film
+        $table->timestamps();
+    });
+}
 
-            $table->timestamps();
-        });
-    }
 
     /**
      * Reverse the migrations.

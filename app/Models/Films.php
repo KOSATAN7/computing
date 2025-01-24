@@ -16,6 +16,8 @@ class Films extends Model
         'status'
     ];
 
+   
+
     public function kategori()
     {
         return $this->belongsTo(Kategori::class, 'kategori'); // 'kategori' adalah foreign key

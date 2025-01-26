@@ -87,7 +87,7 @@ class AuthController extends Controller
         ]);
     }
 
-    public function checkLogin(Request $request)
+    public function checkLogin()
     {
         // Pastikan pengguna sudah terautentikasi
         $user = Auth::user();
@@ -109,7 +109,7 @@ class AuthController extends Controller
         ]);
     }
 
-    public function logout(Request $request)
+    public function logout()
     {
         // Pastikan pengguna sudah terautentikasi
         $user = Auth::user();

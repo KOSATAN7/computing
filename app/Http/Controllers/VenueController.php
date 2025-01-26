@@ -13,17 +13,16 @@ use Illuminate\Support\Facades\Hash;
 class VenueController extends Controller
 {
 
+    // Super Admin
     public function createVenueWithAdmin(Request $request)
     {
         // Validasi input
         $validated = $request->validate([
-            //admin
-            'admin_name' => 'required|string|max:255',
-            'admin_email' => 'required|email|unique:users,email',
-            'admin_password' => 'required|string|min:8',
+            'username_admin' => 'required|string|max:255',
+            'email_admin' => 'required|email|unique:users,email',
+            'password_admin' => 'required|string|min:8',
 
-            //venue
-            'venue_name' => 'required|string|max:255',
+            'nama_venue' => 'required|string|max:255',
             'alamat' => 'required|string',
             'kapasitas' => 'required|integer',
             'fasilitas' => 'nullable|array',
@@ -32,18 +31,18 @@ class VenueController extends Controller
             'status' => 'required|in:tersedia,tidak_tersedia',
         ]);
 
-
+        // Buat admin venue
         $admin = User::create([
-            'username' => $validated['admin_name'],
-            'email' => $validated['admin_email'],
-            'password' => Hash::make($validated['admin_password']),
+            'username' => $validated['username_admin'],
+            'email' => $validated['email_admin'],
+            'password' => Hash::make($validated['password_admin']),
             'role' => 'admin_venue',
         ]);
 
-
+        // Buat venue
         $venue = Venue::create([
             'admin_id' => $admin->id,
-            'nama' => $validated['venue_name'],
+            'nama' => $validated['nama_venue'],
             'alamat' => $validated['alamat'],
             'kapasitas' => $validated['kapasitas'],
             'fasilitas' => $validated['fasilitas'],
@@ -51,7 +50,6 @@ class VenueController extends Controller
             'kontak' => $validated['kontak'],
             'status' => $validated['status'],
         ]);
-
 
         return response()->json([
             'code' => 200,
@@ -62,22 +60,66 @@ class VenueController extends Controller
             ],
         ]);
     }
-    public function index()
-    {
-        $venues = Venue::all();
+    public function update(Request $request, $id)
+{
+    // Cari data venue berdasarkan ID
+    $venue = Venue::find($id);
 
+    if (!$venue) {
+        return response()->json([
+            'message' => 'Data tidak ditemukan.',
+            'code' => 404,
+        ], 404);
+    }
+
+    // Validasi data yang dikirim
+    $validatedData = $request->validate([
+        'nama_venue' => 'string|max:255',
+        'alamat' => 'string',
+        'kapasitas' => 'integer',
+        'fasilitas' => 'nullable|array',
+        'kota' => 'string',
+        'kontak' => 'string',
+        'status' => 'in:tersedia,tidak_tersedia',
+    ]);
+
+    // Update data venue
+    $venue->update($validatedData);
+
+    return response()->json([
+        'message' => 'Sukses mengupdate data.',
+        'code' => 200,
+        'payload' => new VenueResources($venue),
+    ], 200);
+}
+
+
+    // General 
+    public function index(Request $request)
+    {
+
+        $user = $request->user();
+    
+        if ($user->role === 'super_admin') {
+            $venues = Venue::all();
+        } else {
+            $venues = Venue::where('status', 'tersedia')->get();
+        }
+    
         if ($venues->isEmpty()) {
             return response()->json([
                 'message' => 'Data kosong, mohon buat terlebih dahulu.'
             ], 404);
         }
-
+    
+        // Return data venue
         return response()->json([
             'message' => 'Sukses mengambil data.',
             'code' => 200,
             'payload' => VenueResources::collection($venues)
         ], 200);
     }
+    
 
     public function show($id)
     {
@@ -92,37 +134,6 @@ class VenueController extends Controller
 
         return response()->json([
             'message' => 'Sukses mengambil data.',
-            'code' => 200,
-            'payload' => new VenueResources($venue)
-        ], 200);
-    }
-
-    // public function store(Request $request)
-    // {
-    //     $venue = Venue::create($request->all());
-
-    //     return response()->json([
-    //         'message' => 'Sukses membuat data.',
-    //         'code' => 201,
-    //         'payload' => new VenueResources($venue)
-    //     ], 201);
-    // }
-
-    public function update(Request $request, $id)
-    {
-        $venue = Venue::find($id);
-
-        if (!$venue) {
-            return response()->json([
-                'message' => 'Data tidak ditemukan.',
-                'code' => 404
-            ], 404);
-        }
-
-        $venue->update($request->all());
-
-        return response()->json([
-            'message' => 'Sukses mengupdate data.',
             'code' => 200,
             'payload' => new VenueResources($venue)
         ], 200);

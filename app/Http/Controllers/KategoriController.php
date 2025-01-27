@@ -2,128 +2,70 @@
 
 namespace App\Http\Controllers;
 
-use App\Http\Resources\KategoriResources;
 use App\Models\Kategori;
 use Illuminate\Http\Request;
+use Illuminate\Support\Str;
+
 
 class KategoriController extends Controller
 {
-    public function index()
-    {  
-        $venues = Kategori::all();
-        
-        if ($venues->isEmpty()) {
-            return response()->json([
-                'message' => 'Data kosong, mohon buat terlebih dahulu.'
-            ], 404);
-        }
-
-        return response()->json([
-            'message' => 'Sukses mengambil data.',
-            'code' => 200,
-            'payload' => KategoriResources::collection($venues)
-        ], 200);
-    }
-
-    public function show($id)
+    public function semuaKategori()
     {
-        $venue = Kategori::find($id);
-
-        if (!$venue) {
-            return response()->json([
-                'message' => 'Data tidak ditemukan.'
-            ], 404);
-        }
-
-        return response()->json([
-            'message' => 'Sukses mengambil data.',
-            'code' => 200,
-            'payload' => new KategoriResources($venue)
-        ], 200);
+        $kategori = Kategori::all();
+        return response()->json(['data' => $kategori]);
     }
 
-    public function store(Request $request)
-{
-    try {
-        // Validasi input
-        $validatedData = $request->validate([
-            'nama' => 'required|unique:kategoris,nama',
-        ], [
-            'nama.unique' => 'Nama kategori sudah ada, silakan gunakan nama yang lain.',
-            'nama.required' => 'Nama kategori harus diisi.',
+    public function tambahKategori(Request $request)
+    {
+        $request->validate([
+            'nama' => 'required|string|unique:kategori,nama',
+            'deskripsi' => 'nullable|string',
         ]);
 
-        // Jika validasi lolos, buat data kategori baru
-        $venue = Kategori::create($validatedData);
+        $kategori = Kategori::create([
+            'nama' => $request->nama,
+            'slug' => Str::slug($request->nama), // Gunakan Str::slug() di sini
+            'deskripsi' => $request->deskripsi,
+        ]);
 
-        return response()->json([
-            'message' => 'Sukses membuat data.',
-            'code' => 201,
-            'payload' => new KategoriResources($venue)
-        ], 201);
-
-    } catch (\Illuminate\Validation\ValidationException $e) {
-        return response()->json([
-            'message' => 'Gagal membuat data.',
-            'errors' => $e->errors()
-        ], 422);
-    }
-}
-    public function update(Request $request, $id)
-    {
-        $venue = Kategori::find($id);
-
-        if (!$venue) {
-            return response()->json([
-                'message' => 'Data tidak ditemukan.'
-            ], 404);
-        }
-
-        try {
-            // Validasi input dengan pengecualian untuk id saat ini
-            $validatedData = $request->validate([
-                'nama' => 'required|unique:kategoris,nama,' . $id,
-            ], [
-                'nama.unique' => 'Nama kategori sudah ada, silakan gunakan nama yang lain.',
-                'nama.required' => 'Nama kategori harus diisi.',
-            ]);
-
-            // Update data setelah validasi
-            $venue->update($validatedData);
-
-            return response()->json([
-                'message' => 'Sukses mengupdate data.',
-                'code' => 200,
-                'payload' => new KategoriResources($venue)
-            ], 200);
-            
-        } catch (\Illuminate\Database\QueryException $e) {
-            return response()->json([
-                'message' => 'Terjadi kesalahan saat mengupdate data: ' . $e->getMessage()
-            ], 500);
-            
-        } catch (\Exception $e) {
-            return response()->json([
-                'message' => 'Error: ' . $e->getMessage()
-            ], 500);
-        }
+        return response()->json(['message' => 'Kategori berhasil ditambahkan.', 'data' => $kategori]);
     }
 
-    public function delete($id)
-    {
-        $venue = Kategori::find($id);
 
-        if (!$venue) {
-            return response()->json([
-                'message' => 'Data tidak ditemukan.'
-            ], 404);
+    public function rincianKategori($id)
+    {
+        $kategori = Kategori::with('subkategori')->find($id);
+
+        if (!$kategori) {
+            return response()->json(['message' => 'Kategori tidak ditemukan.'], 404);
         }
 
-        $venue->delete();
+        return response()->json(['data' => $kategori]);
+    }
 
-        return response()->json([
-            'message' => 'Sukses menghapus data.',
-            'code' => 200,
-        ], 200);
+    public function ubahKategori(Request $request, $id)
+    {
+        $kategori = Kategori::findOrFail($id);
+
+        $request->validate([
+            'nama' => 'sometimes|string|unique:kategori,nama,' . $id,
+            'deskripsi' => 'nullable|string',
+        ]);
+
+        $kategori->update([
+            'nama' => $request->nama,
+            'slug' => Str::slug($request->nama),
+            'deskripsi' => $request->deskripsi,
+        ]);
+
+        return response()->json(['message' => 'Kategori berhasil diperbarui.', 'data' => $kategori]);
+    }
+
+    public function hapusKategori($id)
+    {
+        $kategori = Kategori::findOrFail($id);
+        $kategori->delete();
+
+        return response()->json(['message' => 'Kategori berhasil dihapus.']);
     }
 }

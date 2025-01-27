@@ -7,14 +7,13 @@ use Illuminate\Database\Eloquent\Model;
 
 class Kategori extends Model
 {
-    protected $table = 'kategoris';
-    protected $fillable = [
-        'nama'
-    ];
+    use HasFactory;
 
-    public function films()
+    protected $table = 'kategori';
+    protected $fillable = ['nama', 'slug', 'deskripsi'];
+
+    public function subkategori()
     {
-        return $this->hasMany(Films::class, 'kategori','id'); // 'kategori' adalah foreign key
+        return $this->hasMany(Subkategori::class, 'kategori_id');
     }
-    
 }

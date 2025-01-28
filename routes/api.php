@@ -85,64 +85,22 @@ Route::prefix('pertandingan')->group(function () {
 });
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 Route::prefix('sports')->group(function () {
     Route::get('/categories', [SportsController::class, 'getCategories']); // Dapatkan kategori
-    Route::get('/{sport}/leagues', [SportsController::class, 'getLeaguesByCategory']); // Dapatkan liga berdasarkan olahraga
+    Route::get('/{sport}/countries', [SportsController::class, 'getCountriesByCategory']);
+    Route::get('/{sport}/leagues', [SportsController::class, 'getLeaguesByCategoryCountryAndSeason']);
     Route::get('/{sport}/teams', [SportsController::class, 'getTeamsByLeague']); // Dapatkan tim berdasarkan liga
     Route::post('/schedule', [SportsController::class, 'createSchedule']); // Buat jadwal
     Route::get('/{sport}/fixtures', [SportsController::class, 'getFixturesBySeason']);
 });
 
 
+Route::get('/{filename}', function ($filename) {
+    $path = public_path('storage/venues/' . $filename);
 
+    if (!file_exists($path)) {
+        abort(404);
+    }
 
-
-
-
-
-
-
-
-
-
-//Kategori
-Route::get('/semua-kategori', [KategoriController::class, 'ambilSemuaKategori']);
-Route::get('/detail-kategori/{slug}', [KategoriController::class, 'ambilDetailKategori']);
-
-
-Route::prefix('kategori')->group(function () {
-    Route::get('/', [KategoriController::class, 'semuaKategori']);
-    Route::post('/', [KategoriController::class, 'tambahKategori']);
-    Route::get('/{id}', [KategoriController::class, 'rincianKategori']);
-    Route::put('/{id}', [KategoriController::class, 'ubahKategori']);
-    Route::delete('/{id}', [KategoriController::class, 'hapusKategori']);
-});
-
-Route::prefix('subkategori')->group(function () {
-    Route::get('/', [SubkategoriController::class, 'semuaSubkategori']);
-    Route::post('/', [SubkategoriController::class, 'tambahSubkategori']);
-    Route::get('/{id}', [SubkategoriController::class, 'rincianSubkategori']);
-    Route::get('/kategori/{kategoriId}', [SubkategoriController::class, 'subkategoriBerdasarkanKategori']);
-    Route::put('/{id}', [SubkategoriController::class, 'ubahSubkategori']);
-    Route::delete('/{id}', [SubkategoriController::class, 'hapusSubkategori']);
+    return response()->file($path);
 });

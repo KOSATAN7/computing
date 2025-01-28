@@ -19,14 +19,17 @@ class Venue extends Model
         'kapasitas',
         'fasilitas',
         'kota',
-        'foto',
+        'foto_utama',
+        'foto_foto',
         'kontak',
         'status',
     ];
 
     protected $casts = [
-        'fasilitas' => 'array', // Cast JSON ke array
+        'fasilitas' => 'array',
+        'foto_foto' => 'array',
     ];
+
 
     public function admin()
     {

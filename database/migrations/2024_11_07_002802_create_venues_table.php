@@ -17,16 +17,18 @@ class CreateVenuesTable extends Migration
             $table->integer('kapasitas');
             $table->json('fasilitas')->nullable();
             $table->string('kota');
-            $table->string('foto')->nullable();
+            $table->string('foto_utama')->nullable();
+            $table->json('foto_foto')->nullable(); // JSON untuk menyimpan array foto
+            $table->string('video')->nullable(); // Tambahkan kolom video
             $table->string('kontak');
             $table->enum('status', ['aktif', 'tidak_aktif'])->default('tidak_aktif');
             $table->timestamps();
 
-            // Foreign key dengan opsi cascade
             $table->foreign('admin_id')->references('id')->on('users')->onDelete('cascade');
             $table->foreign('pertandingan_id')->references('id')->on('pertandingan')->onDelete('cascade');
         });
     }
+
 
     public function down(): void
     {

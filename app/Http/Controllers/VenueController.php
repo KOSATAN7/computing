@@ -8,7 +8,8 @@ use App\Models\Venue;
 use App\Models\Film;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\Facades\Auth;
+use App\Services\FileService;
+
 
 
 
@@ -19,35 +20,44 @@ class VenueController extends Controller
     public function buatVenue(Request $request)
     {
         $validated = $request->validate([
-            'username_admin' => 'required|string|max:255',
-            'email_admin' => 'required|email|unique:users,email',
-            'password_admin' => 'required|string|min:8',
+            'username' => 'required|string|max:255',
+            'email' => 'required|email|unique:users,email',
+            'password' => 'required|string|min:8',
 
-            'nama_venue' => 'required|string|max:255',
+            'nama' => 'required|string|max:255',
             'alamat' => 'required|string',
             'kapasitas' => 'required|integer',
             'fasilitas' => 'nullable|array',
             'kota' => 'required|string',
             'kontak' => 'required|string',
+            'foto_utama' => 'required|file|mimes:jpg,jpeg,png|max:2048',
+            'foto_foto.*' => 'file|mimes:jpg,jpeg,png|max:2048',
+            'video' => 'nullable|file|mimes:mp4|max:10240',
         ]);
 
-        // Membuat admin untuk venue
+
+        $fotoUtamaPath = FileService::uploadFile($request->file('foto_utama'), 'venues');
+        $fotoFotoPaths = FileService::uploadMultipleFiles($request->file('foto_foto', []), 'venues');
+
+
         $admin = User::create([
-            'username' => $validated['username_admin'],
-            'email' => $validated['email_admin'],
-            'password' => Hash::make($validated['password_admin']),
+            'username' => $validated['username'],
+            'email' => $validated['email'],
+            'password' => Hash::make($validated['password']),
             'role' => 'admin_venue',
         ]);
 
-        // Membuat venue dengan data validasi dan status default dari database
+
         $venue = Venue::create([
             'admin_id' => $admin->id,
-            'nama' => $validated['nama_venue'],
+            'nama' => $validated['nama'],
             'alamat' => $validated['alamat'],
             'kapasitas' => $validated['kapasitas'],
             'fasilitas' => $validated['fasilitas'],
             'kota' => $validated['kota'],
             'kontak' => $validated['kontak'],
+            'foto_utama' => $fotoUtamaPath,
+            'foto_foto' => $fotoFotoPaths,
         ]);
 
         return response()->json([
@@ -77,6 +87,7 @@ class VenueController extends Controller
     }
     public function ubahVenue(Request $request, $id)
     {
+
         $venue = Venue::find($id);
 
         if (!$venue) {
@@ -86,52 +97,54 @@ class VenueController extends Controller
             ], 404);
         }
 
+
         $validatedData = $request->validate([
-            'nama_venue' => 'string|max:255',
+            'nama' => 'string|max:255',
             'alamat' => 'string',
             'kapasitas' => 'integer',
             'fasilitas' => 'nullable|array',
             'kota' => 'string',
             'kontak' => 'string',
-            'status' => 'in:aktif,tidak_tersedia',
-
-            // Validasi tambahan untuk data admin
-            // 'username_admin' => 'string|max:255',
-            // 'email_admin' => 'email|unique:users,email,' . $venue->admin_id,
-            // 'password_admin' => 'string|min:8|nullable',
+            'status' => 'in:aktif,tidak_aktif',
+            'foto_utama' => 'nullable|file|mimes:jpg,jpeg,png|max:2048',
+            'foto_foto.*' => 'file|mimes:jpg,jpeg,png|max:2048',
         ]);
 
-        // Update data venue
+        if ($request->hasFile('foto_utama')) {
+            FileService::deleteFile($venue->foto_utama); // Hapus file lama
+            $validatedData['foto_utama'] = FileService::uploadFile($request->file('foto_utama'), 'venues');
+        }
+
+
+        if ($request->hasFile('foto_foto')) {
+            if (!empty($venue->foto_foto)) {
+                FileService::deleteMultipleFiles($venue->foto_foto); // Hapus file lama
+            }
+            $validatedData['foto_foto'] = FileService::uploadMultipleFiles($request->file('foto_foto'), 'venues');
+        }
+
+
+
         $venue->update([
-            'nama' => $validatedData['nama_venue'] ?? $venue->nama,
+            'nama' => $validatedData['nama'] ?? $venue->nama,
             'alamat' => $validatedData['alamat'] ?? $venue->alamat,
             'kapasitas' => $validatedData['kapasitas'] ?? $venue->kapasitas,
             'fasilitas' => $validatedData['fasilitas'] ?? $venue->fasilitas,
             'kota' => $validatedData['kota'] ?? $venue->kota,
             'kontak' => $validatedData['kontak'] ?? $venue->kontak,
             'status' => $validatedData['status'] ?? $venue->status,
+            'foto_utama' => $validatedData['foto_utama'] ?? $venue->foto_utama,
+            'foto_foto' => $validatedData['foto_foto'] ?? $venue->foto_foto,
         ]);
 
-        // Update data admin terkait
-        $admin = User::find($venue->admin_id);
-
-        if ($admin) {
-            $admin->update([
-                'username' => $validatedData['username_admin'] ?? $admin->username,
-                'email' => $validatedData['email_admin'] ?? $admin->email,
-                'password' => isset($validatedData['password_admin']) ? Hash::make($validatedData['password_admin']) : $admin->password,
-            ]);
-        }
-
         return response()->json([
-            'message' => 'Sukses mengupdate data venue dan admin terkait.',
+            'message' => 'Sukses mengupdate data venue.',
             'code' => 200,
-            'payload' => [
-                'venue' => $venue,
-                // 'admin' => $admin,
-            ],
+            'payload' => $venue,
         ], 200);
     }
+
+
     public function ubahStatus(Request $request, $id)
     {
         $venue = Venue::find($id);

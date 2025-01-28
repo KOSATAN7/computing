@@ -23,10 +23,9 @@ class VenueResources extends JsonResource
         'fasilitas' => $this->fasilitas,
         'status' => $this->status,
         'kapasitas' => $this->kapasitas,
-        'foto' => $this->foto,
+        'foto_utama' => $this->foto_utama,
+        'foto_foto' => $this->foto_foto,
         'video' => $this->video,
-
-        
         ];
     }
 }

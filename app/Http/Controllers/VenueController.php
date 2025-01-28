@@ -8,6 +8,8 @@ use App\Models\Venue;
 use App\Models\Film;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Auth;
+
 
 
 class VenueController extends Controller
@@ -94,9 +96,9 @@ class VenueController extends Controller
             'status' => 'in:aktif,tidak_tersedia',
 
             // Validasi tambahan untuk data admin
-            'username_admin' => 'string|max:255',
-            'email_admin' => 'email|unique:users,email,' . $venue->admin_id,
-            'password_admin' => 'string|min:8|nullable',
+            // 'username_admin' => 'string|max:255',
+            // 'email_admin' => 'email|unique:users,email,' . $venue->admin_id,
+            // 'password_admin' => 'string|min:8|nullable',
         ]);
 
         // Update data venue
@@ -126,7 +128,7 @@ class VenueController extends Controller
             'code' => 200,
             'payload' => [
                 'venue' => $venue,
-                'admin' => $admin,
+                // 'admin' => $admin,
             ],
         ], 200);
     }
@@ -273,6 +275,64 @@ class VenueController extends Controller
             'venue' => $venue->load('pertandingan'),
         ]);
     }
+    public function kelolaProfileAdmin(Request $request, $venueId)
+    {
+        // Temukan venue berdasarkan ID dan pastikan admin yang sedang login adalah pemiliknya
+        $venue = Venue::where('id', $venueId)->where('admin_id', auth()->id())->first();
+
+        if (!$venue) {
+            return response()->json([
+                'message' => 'Venue tidak ditemukan atau Anda tidak memiliki akses ke venue ini.',
+                'code' => 403,
+            ], 403);
+        }
+
+        // Validasi input
+        $validatedData = $request->validate([
+            // Validasi untuk data admin
+            'username' => 'nullable|string|max:255',
+            'email' => 'nullable|email|unique:users,email,' . auth()->id(),
+            'password' => 'nullable|string|min:8',
+
+            // Validasi untuk data venue
+            'nama_venue' => 'nullable|string|max:255',
+            'alamat' => 'nullable|string',
+            'kapasitas' => 'nullable|integer',
+            'fasilitas' => 'nullable|array',
+            'kota' => 'nullable|string',
+            'kontak' => 'nullable|string',
+            'status' => 'nullable|in:aktif,tidak_aktif',
+        ]);
+
+        // Perbarui data admin
+        $admin = User::find(auth()->id());
+        $admin->update([
+            'username' => $validatedData['username'] ?? $admin->username,
+            'email' => $validatedData['email'] ?? $admin->email,
+            'password' => isset($validatedData['password']) ? Hash::make($validatedData['password']) : $admin->password,
+        ]);
+
+        // Perbarui data venue
+        $venue->update([
+            'nama' => $validatedData['nama_venue'] ?? $venue->nama,
+            'alamat' => $validatedData['alamat'] ?? $venue->alamat,
+            'kapasitas' => $validatedData['kapasitas'] ?? $venue->kapasitas,
+            'fasilitas' => $validatedData['fasilitas'] ?? $venue->fasilitas,
+            'kota' => $validatedData['kota'] ?? $venue->kota,
+            'kontak' => $validatedData['kontak'] ?? $venue->kontak,
+            'status' => $validatedData['status'] ?? $venue->status,
+        ]);
+
+        return response()->json([
+            'message' => 'Profil admin dan venue berhasil diperbarui.',
+            'code' => 200,
+            'data' => [
+                'admin' => $admin,
+                'venue' => $venue,
+            ],
+        ], 200);
+    }
+
 
 
 

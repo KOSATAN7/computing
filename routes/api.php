@@ -8,6 +8,7 @@ use App\Http\Controllers\SubkategoriController;
 use App\Http\Controllers\KontenController;
 use App\Http\Controllers\PertandinganController;
 use App\Http\Controllers\FilmController;
+use App\Http\Controllers\UserController;
 use App\Http\Middleware\CheckAdminVenue;
 use Illuminate\Support\Facades\Route;
 use App\Http\Middleware\CheckSuperAdmin;
@@ -50,6 +51,13 @@ Route::middleware(['auth:sanctum', CheckSuperAdmin::class])
         Route::delete('/hapus/{id}', [PertandinganController::class, 'hapusPertandingan']);
     });
 
+Route::middleware(['auth:sanctum', CheckSuperAdmin::class])
+    ->prefix('user')
+    ->group(function () {
+        Route::get('/semua-user', [UserController::class, 'ambilSemuaUser']);
+        Route::put('/ubah-user/{id}', [UserController::class, 'ubahUser']);
+    });
+
 
 Route::middleware(['auth:sanctum', CheckAdminVenue::class])
     // Admin Venue
@@ -58,6 +66,7 @@ Route::middleware(['auth:sanctum', CheckAdminVenue::class])
         Route::post('/{venueId}/tambah-pertandingan', [VenueController::class, 'tambahkanPertandinganKeVenue']);
         Route::get('/{venueId}/ambil-pertandingan', [VenueController::class, 'getPertandinganDariVenue']);
         Route::delete('/{venueId}/hapus-pertandingan', [VenueController::class, 'hapusPertandinganDariVenue']);
+        Route::put('/{venueId}/kelola-profile', [VenueController::class, 'kelolaProfileAdmin']);
     });
 
 
@@ -72,7 +81,7 @@ Route::prefix('venue')->group(function () {
 
 Route::prefix('pertandingan')->group(function () {
     Route::get('/semua-pertandingan-aktif', [PertandinganController::class, 'semuaPertandinganAktif']);
-    Route::get('/detail/{id}', [PertandinganController::class, 'detailPertandingan']); 
+    Route::get('/detail/{id}', [PertandinganController::class, 'detailPertandingan']);
 });
 
 

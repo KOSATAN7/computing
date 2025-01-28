@@ -27,15 +27,32 @@ class SportsController extends Controller
             'data' => $categories,
         ]);
     }
-
-    public function getLeaguesByCategory($sport)
+    public function getCountriesByCategory($sport)
     {
         try {
-            $data = $this->sportsService->makeRequest($sport, 'leagues');
+
+            $data = $this->sportsService->makeRequest($sport, 'countries');
+
+            if (empty($data['response'])) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Tidak ada data negara untuk kategori ini.',
+                ], 404);
+            }
+
+
+            $countries = collect($data['response'])->map(function ($country) {
+                return [
+                    'name' => $country['name'],
+                    'code' => $country['code'],
+                    'flag' => $country['flag'],
+                ];
+            });
+
             return response()->json([
                 'success' => true,
-                'data' => $data['response'],
-            ]);
+                'data' => $countries,
+            ], 200);
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
@@ -43,6 +60,56 @@ class SportsController extends Controller
             ], 500);
         }
     }
+    public function getLeaguesByCategoryCountryAndSeason(Request $request, $sport)
+    {
+        $season = $request->input('season', now()->year); // Default ke tahun sekarang jika tidak diberikan
+        $countryCode = $request->input('country_code'); // Filter berdasarkan kode negara (opsional)
+
+        try {
+            // Panggil API untuk mendapatkan daftar liga berdasarkan kategori, kode negara, dan musim
+            $params = [
+                'season' => $season,
+            ];
+
+            if ($countryCode) {
+                $params['code'] = $countryCode; // Tambahkan filter kode negara jika disediakan
+            }
+
+            $data = $this->sportsService->makeRequest($sport, 'leagues', $params);
+
+            if (empty($data['response'])) {
+                return response()->json([
+                    'success' => false,
+                    'message' => "Tidak ada data liga untuk kategori '{$sport}' pada musim ini dengan kode negara '{$countryCode}'.",
+                ], 404);
+            }
+
+            // Format data liga
+            $leagues = collect($data['response'])->map(function ($league) {
+                return [
+                    'league_id' => $league['league']['id'],
+                    'name' => $league['league']['name'],
+                    'type' => $league['league']['type'], // League type (e.g., Cup or League)
+                    'logo' => $league['league']['logo'],
+                    'country' => $league['country']['name'],
+                    'country_flag' => $league['country']['flag'] ?? null,
+                    'country_code' => $league['country']['code'],
+                ];
+            });
+
+            return response()->json([
+                'success' => true,
+                'data' => $leagues,
+            ], 200);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => $e->getMessage(),
+            ], 500);
+        }
+    }
+
+
 
     public function getTeamsByLeague(Request $request, $sport)
     {
@@ -140,9 +207,9 @@ class SportsController extends Controller
                 return [
                     'fixture_id' => $fixture['fixture']['id'],
                     'home_team' => $fixture['teams']['home']['name'],
-                    'home_team_logo' => $fixture['teams']['home']['logo'], 
+                    'home_team_logo' => $fixture['teams']['home']['logo'],
                     'away_team' => $fixture['teams']['away']['name'],
-                    'away_team_logo' => $fixture['teams']['away']['logo'], 
+                    'away_team_logo' => $fixture['teams']['away']['logo'],
                 ];
             });
 

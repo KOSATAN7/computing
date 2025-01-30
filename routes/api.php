@@ -57,6 +57,7 @@ Route::middleware(['auth:sanctum', CheckSuperAdmin::class])
         Route::get('/semua-user', [UserController::class, 'ambilSemuaUser']);
         Route::get('/user-by-id/{id}', [UserController::class, 'userById']);
         Route::put('/ubah-user/{id}', [UserController::class, 'ubahUser']);
+        Route::delete('/hapus-user/{id}', [UserController::class, 'hapusUser']);
     });
 
 

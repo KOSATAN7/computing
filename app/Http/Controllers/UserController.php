@@ -68,9 +68,23 @@ class UserController extends Controller
 
 
         return response()->json([
-            'message' => 'Sukses mengupdate data user.',
+            'message' => 'Sukses mengambil data user by id.',
             'code' => 200,
             'data' => $user,
+        ], 200);
+    }
+
+    public function hapusUser($id)
+    {
+        $user = User::find($id);
+
+        if ($user) {
+            $user->delete();
+        }
+
+        return response()->json([
+            'message' => 'Sukses menghapus data admin terkait.',
+            'code' => 200
         ], 200);
     }
 }

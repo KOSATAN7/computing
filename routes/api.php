@@ -55,6 +55,7 @@ Route::middleware(['auth:sanctum', CheckSuperAdmin::class])
     ->prefix('user')
     ->group(function () {
         Route::get('/semua-user', [UserController::class, 'ambilSemuaUser']);
+        Route::get('/user-by-id/{id}', [UserController::class, 'userById']);
         Route::put('/ubah-user/{id}', [UserController::class, 'ubahUser']);
     });
 

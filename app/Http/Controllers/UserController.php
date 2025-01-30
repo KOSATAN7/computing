@@ -61,4 +61,16 @@ class UserController extends Controller
             'data' => $user,
         ], 200);
     }
+
+    public function userById($id)
+    {
+        $user = User::find($id);
+
+
+        return response()->json([
+            'message' => 'Sukses mengupdate data user.',
+            'code' => 200,
+            'data' => $user,
+        ], 200);
+    }
 }

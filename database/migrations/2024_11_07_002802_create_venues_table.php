@@ -17,6 +17,8 @@ class CreateVenuesTable extends Migration
             $table->integer('kapasitas');
             $table->json('fasilitas')->nullable();
             $table->string('kota');
+            $table->string('latitude');
+            $table->string('longitude');
             $table->string('foto_utama')->nullable();
             $table->json('foto_foto')->nullable(); // JSON untuk menyimpan array foto
             $table->string('video')->nullable(); // Tambahkan kolom video

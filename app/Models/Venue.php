@@ -19,6 +19,8 @@ class Venue extends Model
         'kapasitas',
         'fasilitas',
         'kota',
+        'latitude',
+        'longitude',
         'foto_utama',
         'foto_foto',
         'kontak',

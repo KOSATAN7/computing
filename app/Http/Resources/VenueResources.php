@@ -20,6 +20,8 @@ class VenueResources extends JsonResource
         'alamat' => $this->alamat,
         'kontak' => $this->kontak,
         'kota' => $this->kota,
+        'latitude' => $this->latitude,
+        'longitude' => $this->longitude,
         'fasilitas' => $this->fasilitas,
         'status' => $this->status,
         'kapasitas' => $this->kapasitas,

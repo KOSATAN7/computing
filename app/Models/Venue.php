@@ -42,4 +42,9 @@ class Venue extends Model
     {
         return $this->belongsToMany(Pertandingan::class, 'pertandingan_venue', 'venue_id', 'pertandingan_id');
     }
+
+    public function menus()
+    {
+        return $this->hasMany(Menu::class);
+    }
 }

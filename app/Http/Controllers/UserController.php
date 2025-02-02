@@ -9,7 +9,7 @@ use App\Models\User;
 
 class UserController extends Controller
 {
-    public function ambilSemuaUser()
+    public function ambilSemuaPengguna()
     {
         $user = User::all();
 
@@ -27,7 +27,7 @@ class UserController extends Controller
         ]);
     }
 
-    public function ubahUser(Request $request, $id)
+    public function ubahPengguna(Request $request, $id)
     {
         // Temukan pengguna berdasarkan ID
         $user = User::find($id);
@@ -62,7 +62,7 @@ class UserController extends Controller
         ], 200);
     }
 
-    public function userById($id)
+    public function ambilPenggunaBerdasarkanId($id)
     {
         $user = User::find($id);
 
@@ -74,7 +74,7 @@ class UserController extends Controller
         ], 200);
     }
 
-    public function hapusUser($id)
+    public function hapusPengguna($id)
     {
         $user = User::find($id);
 

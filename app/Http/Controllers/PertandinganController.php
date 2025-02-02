@@ -39,7 +39,7 @@ class PertandinganController extends Controller
             'data' => $pertandingan,
         ]);
     }
-    public function detailPertandingan($id)
+    public function ambilDetailPertandingan($id)
     {
         $pertandingan = Pertandingan::find($id);
 
@@ -132,7 +132,7 @@ class PertandinganController extends Controller
 
 
     // General Semua Role && Unauth
-    public function semuaPertandinganAktif()
+    public function ambilSemuaPertandinganAktif()
     {
 
         $pertandingan = Pertandingan::where('status', 'aktif')->get();

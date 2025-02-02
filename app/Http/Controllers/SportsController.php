@@ -14,7 +14,7 @@ class SportsController extends Controller
         $this->sportsService = $sportsService;
     }
 
-    public function getCategories()
+    public function ambilKategori()
     {
         $categories = [
             'football' => 'Sepak Bola',
@@ -27,7 +27,7 @@ class SportsController extends Controller
             'data' => $categories,
         ]);
     }
-    public function getCountriesByCategory($sport)
+    public function ambilNegaraBerdasarkanKategori($sport)
     {
         try {
 
@@ -60,7 +60,7 @@ class SportsController extends Controller
             ], 500);
         }
     }
-    public function getLeaguesByCategoryCountryAndSeason(Request $request, $sport)
+    public function ambilLigaBerdasarkanKategoriNegaraMusim(Request $request, $sport)
     {
         $season = $request->input('season', now()->year); // Default ke tahun sekarang jika tidak diberikan
         $countryCode = $request->input('country_code'); // Filter berdasarkan kode negara (opsional)
@@ -111,7 +111,7 @@ class SportsController extends Controller
 
 
 
-    public function getTeamsByLeague(Request $request, $sport)
+    public function ambilTimBerdasarkanLiga(Request $request, $sport)
     {
         $leagueId = $request->input('league_id');
         $season = $request->input('season', now()->year); // Default ke tahun saat ini
@@ -150,7 +150,7 @@ class SportsController extends Controller
     }
 
 
-    public function createSchedule(Request $request)
+    public function buatJadwal(Request $request)
     {
         $request->validate([
             'home_team' => 'required|string',
@@ -175,7 +175,7 @@ class SportsController extends Controller
         ]);
     }
 
-    public function getFixturesBySeason(Request $request, $sport)
+    public function ambilPertandinganBerdasarkanMusim(Request $request, $sport)
     {
         $leagueId = $request->input('league_id'); // ID liga (wajib)
 

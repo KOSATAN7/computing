@@ -11,7 +11,7 @@ use App\Models\User;
 
 class AuthController extends Controller
 {
-    public function registerSuperAdmin(Request $request)
+    public function daftarSuperAdmin(Request $request)
     {
         // Validasi input
         $request->validate([
@@ -34,7 +34,7 @@ class AuthController extends Controller
         ], 201);
     }
 
-    public function registerInfobar(Request $request)
+    public function daftarInfobar(Request $request)
     {
         // Validasi input
         $request->validate([
@@ -58,7 +58,7 @@ class AuthController extends Controller
         ], 201);
     }
 
-    public function login(Request $request)
+    public function masuk(Request $request)
     {
 
         // Cari user berdasarkan email
@@ -87,7 +87,7 @@ class AuthController extends Controller
         ]);
     }
 
-    public function checkLogin()
+    public function cekMasuk()
     {
         // Pastikan pengguna sudah terautentikasi
         $user = Auth::user();
@@ -109,7 +109,7 @@ class AuthController extends Controller
         ]);
     }
 
-    public function logout()
+    public function keluar()
     {
         // Pastikan pengguna sudah terautentikasi
         $user = Auth::user();

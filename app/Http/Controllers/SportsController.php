@@ -13,7 +13,6 @@ class SportsController extends Controller
     {
         $this->sportsService = $sportsService;
     }
-
     public function ambilKategori()
     {
         $categories = [
@@ -108,9 +107,6 @@ class SportsController extends Controller
             ], 500);
         }
     }
-
-
-
     public function ambilTimBerdasarkanLiga(Request $request, $sport)
     {
         $leagueId = $request->input('league_id');
@@ -148,8 +144,6 @@ class SportsController extends Controller
             ], 500);
         }
     }
-
-
     public function buatJadwal(Request $request)
     {
         $request->validate([
@@ -174,7 +168,6 @@ class SportsController extends Controller
             'data' => $schedule,
         ]);
     }
-
     public function ambilPertandinganBerdasarkanMusim(Request $request, $sport)
     {
         $leagueId = $request->input('league_id'); // ID liga (wajib)

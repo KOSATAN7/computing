@@ -130,7 +130,6 @@ class PertandinganController extends Controller
     }
 
 
-
     // General Semua Role && Unauth
     public function ambilSemuaPertandinganAktif()
     {

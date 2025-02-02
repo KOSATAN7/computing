@@ -9,6 +9,7 @@ use App\Models\Film;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use App\Services\FileService;
+use Illuminate\Support\Facades\Auth;
 
 
 
@@ -105,7 +106,6 @@ class VenueController extends Controller
             ], 500);
         }
     }
-
     public function ambilSemuaVenue()
     {
 
@@ -248,58 +248,52 @@ class VenueController extends Controller
     // Admin Venue
     public function tambahPertandinganKeVenue(Request $request, $venueId)
     {
+        $adminId = Auth::id();
+
+        $venue = Venue::where('id', $venueId)->where('admin_id', $adminId)->first();
+
+        if (!$venue) {
+            return response()->json([
+                'message' => 'Anda tidak memiliki akses ke venue ini.',
+                'code' => 403,
+            ], 403);
+        }
+
         $request->validate([
-            'pertandingan_id' => 'required|exists:pertandingan,id', // Pastikan ID pertandingan valid
+            'pertandingan_id' => 'required|exists:pertandingan,id',
         ]);
-    
-        // Temukan venue berdasarkan ID
-        $venue = Venue::find($venueId);
-    
+
+
+        if ($venue->pertandingan()->where('pertandingan_id', $request->pertandingan_id)->exists()) {
+            return response()->json([
+                'message' => 'Anda sudah menambahkan pertandingan ini.',
+                'code' => 409,
+            ], 409);
+        }
+
+
+        $venue->pertandingan()->attach($request->pertandingan_id);
+
+        return response()->json([
+            'message' => 'Pertandingan berhasil ditambahkan ke venue.',
+            'code' => 200,
+            'venue' => $venue->load('pertandingan'),
+        ]);
+    }
+    public function ambilPertandinganDariVenue($venueId)
+    {
+        $venue = Venue::with('pertandingan')->where('id', $venueId)->first();
+
         if (!$venue) {
             return response()->json([
                 'message' => 'Venue tidak ditemukan.',
                 'code' => 404,
             ], 404);
         }
-    
-        // Cek apakah pertandingan sudah ditambahkan sebelumnya
-        if ($venue->pertandingan()->where('pertandingan_id', $request->pertandingan_id)->exists()) {
-            return response()->json([
-                'message' => 'Anda sudah menambahkan pertandingan ini.',
-                'code' => 409, // 409 Conflict karena data sudah ada
-            ], 409);
-        }
-    
-        // Tambahkan pertandingan ke venue
-        $venue->pertandingan()->attach($request->pertandingan_id);
-    
-        return response()->json([
-            'message' => 'Pertandingan berhasil ditambahkan ke venue.',
-            'code' => 200,
-            'venue' => $venue->load('pertandingan'), // Sertakan relasi
-        ]);
-    }
-    public function ambilPertandinganDariVenue($venueId)
-    {
-        $venue = Venue::with(['pertandingan' => function ($query) {
-            $query->where('status', 'aktif'); // Filter hanya pertandingan aktif
-        }])
-            ->where('id', $venueId)
-            ->where('status', 'aktif') // Pastikan venue aktif
-            ->first();
 
-        // Cek apakah venue ditemukan
-        if (!$venue) {
-            return response()->json([
-                'message' => 'Venue tidak ditemukan atau tidak aktif.',
-                'code' => 404,
-            ], 404);
-        }
-
-        // Cek apakah ada pertandingan aktif terkait dengan venue
         if ($venue->pertandingan->isEmpty()) {
             return response()->json([
-                'message' => 'Tidak ada pertandingan aktif yang terkait dengan venue ini.',
+                'message' => 'Tidak ada pertandingan yang terkait dengan venue ini.',
                 'code' => 404,
             ], 404);
         }
@@ -307,17 +301,14 @@ class VenueController extends Controller
         return response()->json([
             'message' => 'Sukses mengambil data pertandingan dari venue.',
             'code' => 200,
-            'data' => $venue->pertandingan, // Data pertandingan terkait
-        ]);
+            'data' => $venue->pertandingan,
+        ], 200);
     }
-    public function hapusPertandinganDariVenue(Request $request, $venueId)
+    public function ambilPertandinganDariVenueById($venueId, $pertandinganId)
     {
-        $request->validate([
-            'pertandingan_id' => 'required|exists:pertandingan,id',
-        ]);
-
-        // Temukan venue berdasarkan ID
-        $venue = Venue::find($venueId);
+        $venue = Venue::with(['pertandingan' => function ($query) use ($pertandinganId) {
+            $query->where('pertandingan.id', $pertandinganId); // ✅ Tabel dijelaskan eksplisit
+        }])->where('venues.id', $venueId)->first();
 
         if (!$venue) {
             return response()->json([
@@ -326,7 +317,37 @@ class VenueController extends Controller
             ], 404);
         }
 
-        // Hapus pertandingan dari venue
+        if ($venue->pertandingan->isEmpty()) {
+            return response()->json([
+                'message' => 'Pertandingan tidak ditemukan atau tidak terkait dengan venue ini.',
+                'code' => 404,
+            ], 404);
+        }
+
+        return response()->json([
+            'message' => 'Sukses mengambil data pertandingan dari venue.',
+            'code' => 200,
+            'data' => $venue->pertandingan->first(),
+        ], 200);
+    }
+    public function hapusPertandinganDariVenue(Request $request, $venueId)
+    {
+        $adminId = Auth::id();
+
+
+        $venue = Venue::where('id', $venueId)->where('admin_id', $adminId)->first();
+
+        if (!$venue) {
+            return response()->json([
+                'message' => 'Anda tidak memiliki akses ke venue ini.',
+                'code' => 403,
+            ], 403);
+        }
+
+        $request->validate([
+            'pertandingan_id' => 'required|exists:pertandingan,id',
+        ]);
+
         $venue->pertandingan()->detach($request->pertandingan_id);
 
         return response()->json([
@@ -337,8 +358,9 @@ class VenueController extends Controller
     }
     public function kelolaProfilAdmin(Request $request, $venueId)
     {
-        // Temukan venue berdasarkan ID dan pastikan admin yang sedang login adalah pemiliknya
-        $venue = Venue::where('id', $venueId)->where('admin_id', auth()->id())->first();
+        $adminId = Auth::id();
+
+        $venue = Venue::where('id', $venueId)->where('admin_id', $adminId)->first();
 
         if (!$venue) {
             return response()->json([
@@ -347,14 +369,10 @@ class VenueController extends Controller
             ], 403);
         }
 
-        // Validasi input
         $validatedData = $request->validate([
-            // Validasi untuk data admin
             'username' => 'nullable|string|max:255',
-            'email' => 'nullable|email|unique:users,email,' . auth()->id(),
+            'email' => 'nullable|email|unique:users,email,' . $adminId,
             'password' => 'nullable|string|min:8',
-
-            // Validasi untuk data venue
             'nama_venue' => 'nullable|string|max:255',
             'alamat' => 'nullable|string',
             'kapasitas' => 'nullable|integer',
@@ -363,15 +381,13 @@ class VenueController extends Controller
             'kontak' => 'nullable|string',
         ]);
 
-        // Perbarui data admin
-        $admin = User::find(auth()->id());
+        $admin = User::find($adminId);
         $admin->update([
             'username' => $validatedData['username'] ?? $admin->username,
             'email' => $validatedData['email'] ?? $admin->email,
             'password' => isset($validatedData['password']) ? Hash::make($validatedData['password']) : $admin->password,
         ]);
 
-        // Perbarui data venue
         $venue->update([
             'nama' => $validatedData['nama_venue'] ?? $venue->nama,
             'alamat' => $validatedData['alamat'] ?? $venue->alamat,
@@ -392,9 +408,10 @@ class VenueController extends Controller
     }
     public function ambilVenueBerdasarkanId($venueId)
     {
-        // Temukan venue berdasarkan ID dan pastikan admin yang sedang login memiliki akses
+        $adminId = Auth::id();
+
         $venue = Venue::with('admin')->where('id', $venueId)
-            ->where('admin_id', auth()->id()) // Pastikan hanya admin yang terkait yang bisa mengakses
+            ->where('admin_id', $adminId)
             ->first();
 
         if (!$venue) {
@@ -408,13 +425,11 @@ class VenueController extends Controller
             'message' => 'Sukses mengambil data venue.',
             'code' => 200,
             'data' => [
-                // Data Admin Venue
                 'admin' => [
                     'id' => $venue->admin->id,
                     'username' => $venue->admin->username,
                     'email' => $venue->admin->email,
                 ],
-                // Data Venue
                 'venue' => [
                     'id' => $venue->id,
                     'nama_venue' => $venue->nama,
@@ -448,25 +463,30 @@ class VenueController extends Controller
             'data' => VenueResources::collection($venues),
         ]);
     }
-    public function ambilVenueBerdasarkanPertandingan($pertandinganId)
+    public function ambilVenueAktifBerdasarkanPertandinganAktif($pertandinganId)
     {
+        // Ambil semua venue yang memiliki pertandingan tertentu & status venue = aktif & status pertandingan = aktif
         $venues = Venue::whereHas('pertandingan', function ($query) use ($pertandinganId) {
-            $query->where('pertandingan_id', $pertandinganId);
+            $query->where('pertandingan.id', $pertandinganId)
+                ->where('pertandingan.status', 'aktif'); // Pastikan pertandingan juga aktif
         })->where('status', 'aktif')->get();
 
+        // Jika tidak ada venue yang ditemukan
         if ($venues->isEmpty()) {
             return response()->json([
-                'message' => 'Tidak ada venue yang terkait dengan pertandingan ini atau venue tidak aktif.',
+                'message' => 'Tidak ada venue aktif yang terkait dengan pertandingan aktif ini.',
                 'code' => 404
             ], 404);
         }
 
         return response()->json([
-            'message' => 'Sukses mengambil data venue untuk pertandingan.',
+            'message' => 'Sukses mengambil semua venue aktif berdasarkan pertandingan yang juga aktif.',
             'code' => 200,
-            'data' => $venues
+            'data' => VenueResources::collection($venues)
         ], 200);
     }
+
+
     public function ambilVenueBerdasarkanKota($city)
     {
         $venues = Venue::where('kota', $city)->get();
@@ -500,5 +520,34 @@ class VenueController extends Controller
             'code' => 200,
             'payload' => new VenueResources($venue)
         ], 200);
+    }
+    public function ambilPertandinganAktifDariVenue($venueId)
+    {
+        $adminId = Auth::id();
+
+
+        $venue = Venue::where('id', $venueId)->where('admin_id', $adminId)->with(['pertandingan' => function ($query) {
+            $query->where('status', 'aktif');
+        }])->first();
+
+        if (!$venue) {
+            return response()->json([
+                'message' => 'Anda tidak memiliki akses ke venue ini.',
+                'code' => 403,
+            ], 403);
+        }
+
+        if ($venue->pertandingan->isEmpty()) {
+            return response()->json([
+                'message' => 'Tidak ada pertandingan aktif yang terkait dengan venue ini.',
+                'code' => 404,
+            ], 404);
+        }
+
+        return response()->json([
+            'message' => 'Sukses mengambil data pertandingan dari venue.',
+            'code' => 200,
+            'data' => $venue->pertandingan,
+        ]);
     }
 }

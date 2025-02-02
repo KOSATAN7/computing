@@ -112,7 +112,7 @@ Route::prefix('sports')->controller(SportsController::class)->group(function () 
 // Venue - Umum
 Route::prefix('venue')->controller(VenueController::class)->group(function () {
     Route::get('/aktif', 'ambilSemuaVenueAktif');
-    Route::get('/{venueId}/pertandingan/{pertandinganId}', 'ambilVenueBerdasarkanPertandingan');
+    Route::get('/pertandingan/{pertandinganId}/aktif', 'ambilVenueAktifBerdasarkanPertandinganAktif');
     Route::get('/kota/{city}', 'ambilVenueBerdasarkanKota');
     Route::get('/{id}', 'detailVenue');
 });

@@ -7,108 +7,98 @@ use App\Http\Controllers\PertandinganController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\MenuController;
 use App\Http\Middleware\CheckAdminVenue;
-use Illuminate\Support\Facades\Route;
 use App\Http\Middleware\CheckSuperAdmin;
+use Illuminate\Support\Facades\Route;
 use Laravel\Sanctum\Http\Middleware\EnsureFrontendRequestsAreStateful;
 
-// Pendaftaran Akun
-Route::post('/register-54', [AuthController::class, 'daftarSuperAdmin']);
+// Autentikasi
+Route::post('/register-superadmin', [AuthController::class, 'daftarSuperAdmin']);
 Route::post('/register-infobar', [AuthController::class, 'daftarInfobar']);
 
 Route::middleware([EnsureFrontendRequestsAreStateful::class])->group(function () {
     Route::post('/login', [AuthController::class, 'masuk']);
 });
 
-Route::middleware(['auth:sanctum'])->get('/check-login', [AuthController::class, 'cekMasuk']);
-
 Route::middleware(['auth:sanctum'])->group(function () {
+    Route::get('/check-login', [AuthController::class, 'cekMasuk']);
     Route::post('/logout', [AuthController::class, 'keluar']);
 });
 
-// Superadmin | Kelola Venue
+// Superadmin - Kelola Venue
 Route::middleware(['auth:sanctum', CheckSuperAdmin::class])
     ->prefix('venue')
+    ->controller(VenueController::class)
     ->group(function () {
-        Route::post('/buat', [VenueController::class, 'buatVenue']);
-        Route::get('/semua', [VenueController::class, 'ambilSemuaVenue']);
-        Route::put('/ubah/{id}', [VenueController::class, 'ubahVenue']);
-        Route::put('/ubah-status/{id}', [VenueController::class, 'ubahStatus']);
-        Route::delete('/hapus/{id}', [VenueController::class, 'hapusVenue']);
+        Route::post('/', 'buatVenue');
+        Route::get('/', 'ambilSemuaVenue');
+        Route::put('/{id}', 'ubahVenue');
+        Route::put('/status/{id}', 'ubahStatus');
+        Route::delete('/{id}', 'hapusVenue');
     });
 
-// Superadmin | Kelola Pertandingan
+// Superadmin - Kelola Pertandingan
 Route::middleware(['auth:sanctum', CheckSuperAdmin::class])
     ->prefix('pertandingan')
+    ->controller(PertandinganController::class)
     ->group(function () {
-        Route::post('/buat', [PertandinganController::class, 'buatPertandingan']);
-        Route::get('/semua', [PertandinganController::class, 'ambilSemuaPertandingan']);
-        Route::put('/ubah/{id}', [PertandinganController::class, 'ubahPertandingan']);
-        Route::put('/ubah-status/{id}', [PertandinganController::class, 'ubahStatus']);
-        Route::delete('/hapus/{id}', [PertandinganController::class, 'hapusPertandingan']);
+        Route::post('/', 'buatPertandingan');
+        Route::get('/', 'ambilSemuaPertandingan');
+        Route::put('/{id}', 'ubahPertandingan');
+        Route::put('/status/{id}', 'ubahStatus');
+        Route::delete('/{id}', 'hapusPertandingan');
     });
 
-// Superadmin | Kelola Pengguna
+// Superadmin - Kelola Pengguna
 Route::middleware(['auth:sanctum', CheckSuperAdmin::class])
     ->prefix('user')
+    ->controller(UserController::class)
     ->group(function () {
-        Route::get('/semua-user', [UserController::class, 'ambilSemuaPengguna']);
-        Route::get('/user-by-id/{id}', [UserController::class, 'ambilPenggunaBerdasarkanId']);
-        Route::put('/ubah-user/{id}', [UserController::class, 'ubahPengguna']);
-        Route::delete('/hapus-user/{id}', [UserController::class, 'hapusPengguna']);
+        Route::get('/', 'ambilSemuaPengguna');
+        Route::get('/{id}', 'ambilPenggunaBerdasarkanId');
+        Route::put('/{id}', 'ubahPengguna');
+        Route::delete('/{id}', 'hapusPengguna');
     });
 
-// Admin Venue 
+// Admin Venue - Kelola Menu
 Route::middleware(['auth:sanctum', CheckAdminVenue::class])
-    ->prefix('venue')
+    ->prefix('menu/venue/{venueId}')
+    ->controller(MenuController::class)
     ->group(function () {
-        Route::post('/{venueId}/tambah-pertandingan', [VenueController::class, 'tambahPertandinganKeVenue']);
-        Route::get('/{venueId}/ambil-pertandingan', [VenueController::class, 'ambilPertandinganDariVenue']);
-        Route::delete('/{venueId}/hapus-pertandingan', [VenueController::class, 'hapusPertandinganDariVenue']);
-        Route::put('/{venueId}/kelola-profile', [VenueController::class, 'kelolaProfilAdmin']);
-        Route::get('/detail-venue/{venueId}', [VenueController::class, 'ambilVenueBerdasarkanId']);
+        Route::get('/', 'ambilMenuBerdasarkanVenue');
+        Route::get('/aktif', 'menuAktifBerdasarkanVenue');
+        Route::get('/{menuId}', 'ambilDetailMenu');
+        Route::post('/', 'tambahMenu');
+        Route::put('/{menuId}', 'ubahMenu');
+        Route::delete('/{menuId}', 'hapusMenu');
     });
 
 // Venue - Umum
-Route::prefix('venue')->group(function () {
-    Route::get('/semua-venue-aktif', [VenueController::class, 'ambilSemuaVenueAktif']);
-    Route::get('/pertandingan/{pertandinganId}', [VenueController::class, 'ambilVenueBerdasarkanPertandingan']);
-    Route::get('/city/{city}', [VenueController::class, 'ambilVenueBerdasarkanKota']);
-    Route::get('/detail/{id}', [VenueController::class, 'detailVenue']);
+Route::prefix('venue')->controller(VenueController::class)->group(function () {
+    Route::get('/aktif', 'ambilSemuaVenueAktif');
+    Route::get('/pertandingan/{pertandinganId}', 'ambilVenueBerdasarkanPertandingan');
+    Route::get('/kota/{city}', 'ambilVenueBerdasarkanKota');
+    Route::get('/{id}', 'detailVenue');
 });
 
 // Olahraga - Umum
-Route::prefix('sports')->group(function () {
-    Route::get('/categories', [SportsController::class, 'ambilKategori']);
-    Route::get('/{sport}/countries', [SportsController::class, 'ambilNegaraBerdasarkanKategori']);
-    Route::get('/{sport}/leagues', [SportsController::class, 'ambilLigaBerdasarkanKategoriNegaraMusim']);
-    Route::get('/{sport}/teams', [SportsController::class, 'ambilTimBerdasarkanLiga']);
-    Route::post('/schedule', [SportsController::class, 'buatJadwal']);
-    Route::get('/{sport}/fixtures', [SportsController::class, 'ambilPertandinganBerdasarkanMusim']);
+Route::prefix('sports')->controller(SportsController::class)->group(function () {
+    Route::get('/categories', 'ambilKategori');
+    Route::get('/{sport}/countries', 'ambilNegaraBerdasarkanKategori');
+    Route::get('/{sport}/leagues', 'ambilLigaBerdasarkanKategoriNegaraMusim');
+    Route::get('/{sport}/teams', 'ambilTimBerdasarkanLiga');
+    Route::post('/schedule', 'buatJadwal');
+    Route::get('/{sport}/fixtures', 'ambilPertandinganBerdasarkanMusim');
 });
 
 // Pertandingan - Umum
-Route::prefix('pertandingan')->group(function () {
-    Route::get('/semua-pertandingan-aktif', [PertandinganController::class, 'ambilSemuaPertandinganAktif']);
-    Route::get('/detail/{id}', [PertandinganController::class, 'ambilDetailPertandingan']);
-});
-
-// Menu - Umum
-Route::prefix('menu/venue/{venueId}')->controller(MenuController::class)->group(function () {
-    Route::get('/menu-by-venue', 'ambilMenuBerdasarkanVenue');
-    Route::get('/menu-aktif', 'menuAktifBerdasarkanVenue');
-    Route::get('/detail-menu/{menuId}', 'ambilDetailMenu');
-    Route::post('/buat', 'tambahMenu');
-    Route::put('/ubah-menu/{menuId}', 'ubahMenu');
-    Route::delete('/hapus-menu/{menuId}', 'hapusMenu');
+Route::prefix('pertandingan')->controller(PertandinganController::class)->group(function () {
+    Route::get('/aktif', 'ambilSemuaPertandinganAktif');
+    Route::get('/{id}', 'ambilDetailPertandingan');
 });
 
 // Pengambilan File Venue
 Route::get('/{filename}', function ($filename) {
     $path = public_path('storage/venues/' . $filename);
-
-    if (!file_exists($path)) {
-        abort(404);
-    }
-
+    if (!file_exists($path)) abort(404);
     return response()->file($path);
 });

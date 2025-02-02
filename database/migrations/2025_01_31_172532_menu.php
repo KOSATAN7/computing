@@ -16,7 +16,7 @@ return new class extends Migration {
             $table->foreignId('venue_id')->constrained('venues')->onDelete('cascade');
             $table->string('nama');
             $table->text('deskripsi')->nullable();
-            $table->decimal('harga', 10, 2);
+            $table->decimal('harga', 10);
             $table->string('foto')->nullable();
             $table->string('kategori');
             $table->boolean('kesediaan')->default(true);

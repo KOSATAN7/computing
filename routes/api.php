@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\AuthController;
+use App\Http\Controllers\ProviderPembayaranController;
 use App\Http\Controllers\VenueController;
 use App\Http\Controllers\SportsController;
 use App\Http\Controllers\PertandinganController;
@@ -33,7 +34,7 @@ Route::middleware(['auth:sanctum', CheckSuperAdmin::class])
         Route::post('/', 'buatVenue');
         Route::get('/', 'ambilSemuaVenue');
         Route::put('/{id}', 'ubahVenue');
-        Route::put('/status/{id}', 'ubahStatus');
+        Route::patch('/status/{id}', 'ubahStatus');
         Route::delete('/{id}', 'hapusVenue');
     });
 
@@ -45,7 +46,7 @@ Route::middleware(['auth:sanctum', CheckSuperAdmin::class])
         Route::post('/', 'buatPertandingan');
         Route::get('/', 'ambilSemuaPertandingan');
         Route::put('/{id}', 'ubahPertandingan');
-        Route::put('/status/{id}', 'ubahStatus');
+        Route::patch('/status/{id}', 'ubahStatus');
         Route::delete('/{id}', 'hapusPertandingan');
     });
 
@@ -61,19 +62,19 @@ Route::middleware(['auth:sanctum', CheckSuperAdmin::class])
     });
 
 // Superadmin | Kelola Metode Pembayaran
-Route::middleware(['auth:sanctum',CheckSuperAdmin::class])
+Route::middleware(['auth:sanctum', CheckSuperAdmin::class])
     ->prefix('metode-pembayaran')
     ->controller(MetodePembayaranController::class)
-    ->group(function(){
-        Route::get('/','ambilMetodePembayaran');
-        Route::get('/{id}','detailMetodePembayaran');
-        Route::post('/','buatMetodePembayaran');
-        Route::put('/{id}','ubahMetodePembayaran');
-        Route::put('/{id}/status','ubahStatusMetodePembayaran');
-        Route::delete('/{id}','hapusMetodePembayaran');
+    ->group(function () {
+        Route::get('/', 'ambilMetodePembayaran');
+        Route::get('/{id}', 'detailMetodePembayaran');
+        Route::post('/', 'buatMetodePembayaran');
+        Route::put('/{id}', 'ubahMetodePembayaran');
+        Route::patch('/{id}/status', 'ubahStatusMetodePembayaran');
+        Route::delete('/{id}', 'hapusMetodePembayaran');
     });
 
-// Admin Venue - Kelola Profil
+// Admin Venue | Kelola Profil
 Route::middleware(['auth:sanctum', CheckAdminVenue::class])
     ->prefix('profil/venue')
     ->controller(VenueController::class)
@@ -94,7 +95,7 @@ Route::middleware(['auth:sanctum', CheckAdminVenue::class])
     });
 
 
-// Admin Venue - Kelola Menu
+// Admin Venue | Kelola Menu
 Route::middleware(['auth:sanctum', CheckAdminVenue::class])
     ->prefix('menu/venue/{venueId}')
     ->controller(MenuController::class)
@@ -103,8 +104,21 @@ Route::middleware(['auth:sanctum', CheckAdminVenue::class])
         Route::get('/', 'ambilMenuBerdasarkanVenue');
         Route::get('/{menuId}', 'ambilDetailMenu');
         Route::put('/{menuId}', 'ubahMenu');
-        Route::put('/status/{menuId}', 'ubahStatusMenu');
+        Route::patch('/status/{menuId}', 'ubahStatusMenu');
         Route::delete('/{menuId}', 'hapusMenu');
+    });
+
+// Admin Venue | Kelola Provider
+Route::middleware(['auth:sanctum', CheckAdminVenue::class])
+    ->prefix('venue/{venueId}/provider')
+    ->controller(ProviderPembayaranController::class)
+    ->group(function () {
+        Route::get('/',  'ambilProviderPembayaran');
+        Route::post('/',  'buatProviderPembayaran');
+        Route::get('/{id}',  'detailProviderPembayaran');
+        Route::put('/{id}',  'ubahProviderPembayaran');
+        Route::patch('/{id}/status',  'ubahStatusProviderPembayaran');
+        Route::delete('/{id}', 'hapusProviderPembayaran');
     });
 
 // Pertandingan - Umum

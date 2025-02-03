@@ -14,6 +14,7 @@ class Venue extends Model
     protected $fillable = [
         'admin_id',
         'pertandingan_id',
+        'provider_id', 
         'nama',
         'alamat',
         'kapasitas',
@@ -32,7 +33,6 @@ class Venue extends Model
         'foto_foto' => 'array',
     ];
 
-
     public function admin()
     {
         return $this->belongsTo(User::class, 'admin_id');
@@ -46,5 +46,10 @@ class Venue extends Model
     public function menus()
     {
         return $this->hasMany(Menu::class);
+    }
+
+    public function provider()
+    {
+        return $this->hasOne(ProviderPembayaran::class, 'venue_id');
     }
 }

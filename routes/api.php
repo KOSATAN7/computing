@@ -6,6 +6,7 @@ use App\Http\Controllers\SportsController;
 use App\Http\Controllers\PertandinganController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\MenuController;
+use App\Http\Controllers\MetodePembayaranController;
 use App\Http\Middleware\CheckAdminVenue;
 use App\Http\Middleware\CheckSuperAdmin;
 use Illuminate\Support\Facades\Route;
@@ -24,7 +25,7 @@ Route::middleware(['auth:sanctum'])->group(function () {
     Route::post('/logout', [AuthController::class, 'keluar']);
 });
 
-// Superadmin - Kelola Venue
+// Superadmin | Kelola Venue
 Route::middleware(['auth:sanctum', CheckSuperAdmin::class])
     ->prefix('venue')
     ->controller(VenueController::class)
@@ -36,7 +37,7 @@ Route::middleware(['auth:sanctum', CheckSuperAdmin::class])
         Route::delete('/{id}', 'hapusVenue');
     });
 
-// Superadmin - Kelola Pertandingan
+// Superadmin | Kelola Pertandingan
 Route::middleware(['auth:sanctum', CheckSuperAdmin::class])
     ->prefix('pertandingan')
     ->controller(PertandinganController::class)
@@ -48,7 +49,7 @@ Route::middleware(['auth:sanctum', CheckSuperAdmin::class])
         Route::delete('/{id}', 'hapusPertandingan');
     });
 
-// Superadmin - Kelola Pengguna
+// Superadmin | Kelola Pengguna
 Route::middleware(['auth:sanctum', CheckSuperAdmin::class])
     ->prefix('user')
     ->controller(UserController::class)
@@ -57,6 +58,19 @@ Route::middleware(['auth:sanctum', CheckSuperAdmin::class])
         Route::get('/{id}', 'ambilPenggunaBerdasarkanId');
         Route::put('/{id}', 'ubahPengguna');
         Route::delete('/{id}', 'hapusPengguna');
+    });
+
+// Superadmin | Kelola Metode Pembayaran
+Route::middleware(['auth:sanctum',CheckSuperAdmin::class])
+    ->prefix('metode-pembayaran')
+    ->controller(MetodePembayaranController::class)
+    ->group(function(){
+        Route::get('/','ambilMetodePembayaran');
+        Route::get('/{id}','detailMetodePembayaran');
+        Route::post('/','buatMetodePembayaran');
+        Route::put('/{id}','ubahMetodePembayaran');
+        Route::put('/{id}/status','ubahStatusMetodePembayaran');
+        Route::delete('/{id}','hapusMetodePembayaran');
     });
 
 // Admin Venue - Kelola Profil

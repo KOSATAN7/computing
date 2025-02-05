@@ -38,28 +38,37 @@ class ProviderPembayaranController extends Controller
      */
     public function buatProviderPembayaran(Request $request, $venue_id)
     {
+        // Cek apakah venue ada
         $venue = Venue::find($venue_id);
-
         if (!$venue) {
             return response()->json(['message' => 'Venue tidak ditemukan'], 404);
         }
 
+        // Validasi input
         $request->validate([
             'nama' => 'required|string|unique:provider_pembayarans,nama|max:255',
             'no_rek' => 'required|string|max:50',
             'penerima' => 'required|string|max:255',
             'deskripsi' => 'nullable|string|max:3000',
-            'foto' => 'nullable|string|max:255',
+            'foto' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048', // Pastikan ini untuk upload file
             'aktif' => 'boolean',
             'metode_pembayaran_id' => 'required|exists:metode_pembayarans,id'
         ]);
 
+        // Proses upload foto jika ada
+        if ($request->hasFile('foto')) {
+            $fotoPath = $request->file('foto')->store('provider_pembayaran', 'public');
+        } else {
+            $fotoPath = null;
+        }
+
+        // Simpan data provider pembayaran
         $providerPembayaran = ProviderPembayaran::create([
             'nama' => $request->nama,
             'no_rek' => $request->no_rek,
             'penerima' => $request->penerima,
             'deskripsi' => $request->deskripsi,
-            'foto' => $request->foto,
+            'foto' => $fotoPath, // Simpan path file
             'aktif' => $request->aktif ?? true,
             'metode_pembayaran_id' => $request->metode_pembayaran_id,
             'venue_id' => $venue->id
@@ -70,6 +79,7 @@ class ProviderPembayaranController extends Controller
             'data' => new ProviderPembayaranResource($providerPembayaran)
         ], 201);
     }
+
     public function detailProviderPembayaran($venue_id, $id)
     {
         $venue = Venue::find($venue_id);
@@ -117,7 +127,13 @@ class ProviderPembayaranController extends Controller
         ]);
 
         $providerPembayaran->update($request->only([
-            'nama', 'no_rek', 'penerima', 'deskripsi', 'foto', 'aktif', 'metode_pembayaran_id'
+            'nama',
+            'no_rek',
+            'penerima',
+            'deskripsi',
+            'foto',
+            'aktif',
+            'metode_pembayaran_id'
         ]));
 
         return response()->json([

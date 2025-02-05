@@ -12,7 +12,7 @@ class PertandinganSeeder extends Seeder
         Pertandingan::insert([
             [
                 'cabang_olahraga' => 'Sepak Bola',
-                'liga' => 'Liga 1 Indonesia',
+                'liga' => 'Liga 1 IDN',
                 'tim_tuan_rumah' => 'Persija Jakarta',
                 'logo_tuan_rumah' => 'persija.png',
                 'tim_tamu' => 'Persebaya Surabaya',

@@ -9,6 +9,7 @@ use App\Http\Controllers\UserController;
 use App\Http\Controllers\MenuController;
 use App\Http\Controllers\MetodePembayaranController;
 use App\Http\Middleware\CheckAdminVenue;
+use App\Http\Middleware\CheckInfobar;
 use App\Http\Middleware\CheckSuperAdmin;
 use Illuminate\Support\Facades\Route;
 use Laravel\Sanctum\Http\Middleware\EnsureFrontendRequestsAreStateful;
@@ -121,6 +122,17 @@ Route::middleware(['auth:sanctum', CheckAdminVenue::class])
         Route::delete('/{id}', 'hapusProviderPembayaran');
     });
 
+// Venue Favorit | Infobar
+Route::middleware(['auth:sanctum', CheckInfobar::class])
+    ->prefix('favorit')
+    ->controller(VenueController::class)
+    ->group(function(){
+        Route::post('/venue/{venueId}', 'tambahFavorit');  // Tambah venue ke favorit
+        Route::delete('/venue/{venueId}', 'hapusFavorit'); // Hapus venue dari favorit
+        Route::get('/', 'ambilFavorit');    
+    });
+
+
 // Pertandingan - Umum
 Route::prefix('konten')->controller(PertandinganController::class)->group(function () {
     Route::get('/aktif', 'ambilSemuaPertandinganAktif');
@@ -157,3 +169,5 @@ Route::get('/{filename}', function ($filename) {
     if (!file_exists($path)) abort(404);
     return response()->file($path);
 });
+
+

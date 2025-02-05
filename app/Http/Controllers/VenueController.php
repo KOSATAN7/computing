@@ -485,8 +485,6 @@ class VenueController extends Controller
             'data' => VenueResources::collection($venues)
         ], 200);
     }
-
-
     public function ambilVenueBerdasarkanKota($city)
     {
         $venues = Venue::where('kota', $city)->get();
@@ -548,6 +546,70 @@ class VenueController extends Controller
             'message' => 'Sukses mengambil data pertandingan dari venue.',
             'code' => 200,
             'data' => $venue->pertandingan,
+        ]);
+    }
+
+    public function tambahFavorit($venueId)
+    {
+        $user = Auth::user();
+
+        if (!$user) {
+            return response()->json(['message' => 'Anda harus login untuk menambahkan favorit.'], 401);
+        }
+
+        $venue = Venue::findOrFail($venueId);
+
+        if ($user->favoriteVenues()->where('venue_id', $venueId)->exists()) {
+            return response()->json(['message' => 'Venue sudah difavoritkan'], 400);
+        }
+
+        $user->favoriteVenues()->attach($venueId);
+
+        return response()->json(['message' => 'Venue berhasil ditambahkan ke favorit'], 200);
+    }
+
+
+
+
+    // Hapus venue dari favorit user
+    public function hapusFavorit($venueId)
+    {
+        $user = Auth::user();
+
+        if (!$user) {
+            return response()->json(['message' => 'Anda harus login untuk menghapus favorit.'], 401);
+        }
+
+        $venue = Venue::findOrFail($venueId);
+
+        if (!$user->favoriteVenues()->where('venue_id', $venueId)->exists()) {
+            return response()->json(['message' => 'Venue tidak ada dalam daftar favorit'], 404);
+        }
+
+        $user->favoriteVenues()->detach($venueId);
+
+        return response()->json(['message' => 'Venue berhasil dihapus dari favorit'], 200);
+    }
+
+
+
+
+    // Ambil daftar venue yang difavoritkan oleh user tertentu
+    public function ambilFavorit()
+    {
+        $user = Auth::user();
+
+        if (!$user) {
+            return response()->json(['message' => 'Anda harus login untuk melihat favorit.'], 401);
+        }
+
+        
+
+        $favorites = $user->favoriteVenues()->get();
+
+        return response()->json([
+            'message' => 'Sukses mengambil daftar venue favorit.',
+            'data' => $favorites,
         ]);
     }
 }

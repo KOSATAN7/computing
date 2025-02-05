@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 
 class Venue extends Model
 {
@@ -14,7 +15,7 @@ class Venue extends Model
     protected $fillable = [
         'admin_id',
         'pertandingan_id',
-        'provider_id', 
+        'provider_id',
         'nama',
         'alamat',
         'kapasitas',
@@ -51,5 +52,10 @@ class Venue extends Model
     public function provider()
     {
         return $this->hasOne(ProviderPembayaran::class, 'venue_id');
+    }
+
+    public function favoritedByUsers(): BelongsToMany
+    {
+        return $this->belongsToMany(User::class, 'user_favorites', 'venue_id', 'user_id')->withTimestamps();
     }
 }

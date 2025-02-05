@@ -119,12 +119,18 @@ Route::middleware(['auth:sanctum', CheckAdminVenue::class])
     ->prefix('venue/{venueId}/provider')
     ->controller(ProviderPembayaranController::class)
     ->group(function () {
-        Route::get('/',  'ambilProviderPembayaran');
         Route::post('/',  'buatProviderPembayaran');
         Route::get('/{id}',  'detailProviderPembayaran');
         Route::put('/{id}',  'ubahProviderPembayaran');
         Route::patch('/{id}/status',  'ubahStatusProviderPembayaran');
         Route::delete('/{id}', 'hapusProviderPembayaran');
+    });
+
+    Route::middleware('auth:sanctum')
+    ->prefix('venue/{venueId}/provider')
+    ->controller(ProviderPembayaranController::class)
+    ->group(function () {
+        Route::get('/',  'ambilProviderPembayaran');
     });
 
 // Admin Venue | get data metode pembayaran

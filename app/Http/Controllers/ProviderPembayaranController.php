@@ -44,11 +44,6 @@ class ProviderPembayaranController extends Controller
             return response()->json(['message' => 'Venue tidak ditemukan'], 404);
         }
 
-        // Cek apakah venue sudah memiliki provider
-        if ($venue->provider) {
-            return response()->json(['message' => 'Venue sudah memiliki provider pembayaran'], 400);
-        }
-
         $request->validate([
             'nama' => 'required|string|unique:provider_pembayarans,nama|max:255',
             'no_rek' => 'required|string|max:50',
@@ -75,10 +70,6 @@ class ProviderPembayaranController extends Controller
             'data' => new ProviderPembayaranResource($providerPembayaran)
         ], 201);
     }
-
-    /**
-     * Ambil detail provider pembayaran berdasarkan ID dan Venue
-     */
     public function detailProviderPembayaran($venue_id, $id)
     {
         $venue = Venue::find($venue_id);
@@ -101,10 +92,6 @@ class ProviderPembayaranController extends Controller
             'data' => new ProviderPembayaranResource($providerPembayaran)
         ], 200);
     }
-
-    /**
-     * Ubah data provider pembayaran untuk venue tertentu
-     */
     public function ubahProviderPembayaran(Request $request, $venue_id, $id)
     {
         $venue = Venue::find($venue_id);
@@ -138,10 +125,6 @@ class ProviderPembayaranController extends Controller
             'data' => new ProviderPembayaranResource($providerPembayaran)
         ], 200);
     }
-
-    /**
-     * Ubah status aktif/inaktif provider pembayaran
-     */
     public function ubahStatusProviderPembayaran($venue_id, $id)
     {
         $venue = Venue::find($venue_id);
@@ -165,10 +148,6 @@ class ProviderPembayaranController extends Controller
             'data' => new ProviderPembayaranResource($providerPembayaran)
         ]);
     }
-
-    /**
-     * Hapus provider pembayaran untuk venue tertentu
-     */
     public function hapusProviderPembayaran($venue_id, $id)
     {
         $venue = Venue::find($venue_id);

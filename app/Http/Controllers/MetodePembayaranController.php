@@ -83,7 +83,6 @@ class MetodePembayaranController extends Controller
             'data' => new MetodePembayaranResources($metodePembayaran)
         ]);
     }
-
     public function ubahStatusMetodePembayaran($id)
     {
         $metodePembayaran = MetodePembayaran::find($id);
@@ -116,6 +115,22 @@ class MetodePembayaranController extends Controller
 
         return response()->json([
             'message' => 'Metode pembayaran berhasil dihapus'
+        ]);
+    }
+
+    public function ambilMetodeUntukAV()
+    {
+        $metodePembayaran = MetodePembayaran::all();
+
+        if (!$metodePembayaran) {
+            return response()->json([
+                'message' => 'Metode pembayaran tidak ditemukan'
+            ], 404);
+        }
+
+        return response()->json([
+            'message' => 'Data berhasil diambil',
+            'data' => MetodePembayaranResources::collection($metodePembayaran)
         ]);
     }
 }

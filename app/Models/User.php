@@ -1,4 +1,5 @@
 <?php
+
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -27,8 +28,18 @@ class User extends Authenticatable
         return $this->hasMany(Venue::class, 'created_by');
     }
 
+    public function managedVenues()
+    {
+        return $this->hasMany(Venue::class, 'admin_id');
+    }
+
     public function favoriteVenues(): BelongsToMany
     {
         return $this->belongsToMany(Venue::class, 'user_favorites', 'user_id', 'venue_id')->withTimestamps();
+    }
+
+    public function bookings()
+    {
+        return $this->hasMany(Booking::class);
     }
 }

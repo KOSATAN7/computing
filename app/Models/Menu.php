@@ -15,4 +15,8 @@ class Menu extends Model
     {
         return $this->belongsTo(Venue::class);
     }
+    public function bookings()
+    {
+        return $this->belongsToMany(Booking::class, 'booking_menu', 'menu_id', 'booking_id')->withTimestamps();
+    }
 }

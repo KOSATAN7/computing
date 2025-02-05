@@ -8,6 +8,7 @@ use App\Http\Controllers\PertandinganController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\MenuController;
 use App\Http\Controllers\MetodePembayaranController;
+use App\Http\Controllers\BookingController;
 use App\Http\Middleware\CheckAdminVenue;
 use App\Http\Middleware\CheckInfobar;
 use App\Http\Middleware\CheckSuperAdmin;
@@ -122,18 +123,45 @@ Route::middleware(['auth:sanctum', CheckAdminVenue::class])
         Route::delete('/{id}', 'hapusProviderPembayaran');
     });
 
+
+Route::middleware(['auth:sanctum'])->group(function () {
+    Route::get('/list-metode', [MetodePembayaranController::class,'ambilMetodeUntukAV']);
+});
+
+// Admin Venue | Kelola Booking
+Route::middleware(['auth:sanctum', CheckAdminVenue::class])
+    ->prefix('booking')
+    ->controller(BookingController::class)
+    ->group(function () {
+        Route::get('/venue/{venueId}/booking',  'ambilBookingByVenue');
+    });
+
 // Venue Favorit | Infobar
 Route::middleware(['auth:sanctum', CheckInfobar::class])
     ->prefix('favorit')
     ->controller(VenueController::class)
-    ->group(function(){
+    ->group(function () {
         Route::post('/venue/{venueId}', 'tambahFavorit');  // Tambah venue ke favorit
         Route::delete('/venue/{venueId}', 'hapusFavorit'); // Hapus venue dari favorit
-        Route::get('/', 'ambilFavorit');    
+        Route::get('/', 'ambilFavorit');
+    });
+
+// Booking | Infobar
+Route::middleware(['auth:sanctum'])
+    ->prefix('booking')
+    ->controller(BookingController::class)
+    ->group(function () {
+        Route::post('/', 'buatBooking');
+        Route::get('/',  'ambilSemuaBooking');
+        Route::get('/{id}',  'ambilBooking');
+        Route::patch('/{id}/confirm', 'konfirmasiBooking');
+        Route::patch('/{id}/cancel',  'batalkanBooking');
     });
 
 
-// Pertandingan - Umum
+
+
+// Pertandingan | Umum
 Route::prefix('konten')->controller(PertandinganController::class)->group(function () {
     Route::get('/aktif', 'ambilSemuaPertandinganAktif');
     Route::get('/{id}', 'ambilDetailPertandingan');
@@ -162,12 +190,16 @@ Route::prefix('memek')->controller(MenuController::class)->group(function () {
 });
 
 
-
 // Pengambilan File Venue
-Route::get('/{filename}', function ($filename) {
-    $path = public_path('storage/venues/' . $filename);
-    if (!file_exists($path)) abort(404);
-    return response()->file($path);
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Response;
+
+Route::get('/gambar/{filename}', function ($filename) {
+    $path = storage_path('app/public/' . $filename); // Ambil dari storage/app/public/
+
+    if (!file_exists($path)) {
+        abort(404);
+    }
+
+    return Response::file($path);
 });
-
-

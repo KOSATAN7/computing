@@ -58,4 +58,9 @@ class Venue extends Model
     {
         return $this->belongsToMany(User::class, 'user_favorites', 'venue_id', 'user_id')->withTimestamps();
     }
+
+    public function bookings()
+    {
+        return $this->hasMany(Booking::class);
+    }
 }

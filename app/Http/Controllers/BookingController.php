@@ -15,7 +15,7 @@ class BookingController extends Controller
     // Validasi inputan
     $request->validate([
         'venue_id' => 'required|exists:venues,id',
-        'menu_pesanan' => 'required|array',
+        'menu_pesanan' => 'required',
         'menu_pesanan.*' => 'exists:menus,id',
         'jumlah_orang' => 'required|integer|min:1',
         'bukti_pembayaran' => 'nullable',

@@ -12,70 +12,57 @@ class BookingController extends Controller
 {
     public function buatBooking(Request $request)
     {
-        // Validasi input dari request
+        // Validasi inputan
         $request->validate([
-            'venue_id' => 'required|exists:venues,id', // Validasi venue_id
-            'menu_pesanan' => 'required|array', // Memastikan menu_pesanan adalah array
-            'menu_pesanan.*' => 'array', // Setiap elemen di dalam menu_pesanan adalah objek
-            'menu_pesanan.*.menu_id' => 'required|integer|exists:menus,id', // Validasi id menu
-            'menu_pesanan.*.jumlah' => 'required|integer|min:1', // Validasi jumlah pesanan per menu
-            'jumlah_orang' => 'required|integer|min:1', // Validasi jumlah orang
-            'total_harga' => 'required|numeric|min:0', // Validasi total harga
-            'bukti_pembayaran' => 'nullable', // File bukti pembayaran boleh kosong
-            'provider_id' => 'nullable|exists:provider_pembayarans,id' // Validasi provider_id (optional)
+            'venue_id' => 'required|exists:venues,id',
+            'menu_pesanan' => 'required|array',
+            'menu_pesanan.*' => 'exists:menus,id',
+            'jumlah_orang' => 'required|integer|min:1',
+            'bukti_pembayaran' => 'nullable|image|mimes:jpg,png,jpeg|max:2048',
+            'provider_id' => 'nullable|exists:provider_pembayarans,id'
         ]);
 
-        // Ambil data user yang sedang login
         $user = Auth::user();
 
-        // Proses upload file bukti pembayaran jika ada
+        // Simpan bukti pembayaran jika ada
         $buktiPath = $request->file('bukti_pembayaran')
             ? $request->file('bukti_pembayaran')->storeAs('', $request->file('bukti_pembayaran')->hashName(), 'local')
             : null;
 
-        // Membuat booking baru
+        // Hitung total harga berdasarkan menu yang dipilih
+        $totalHarga = Menu::whereIn('id', $request->menu_pesanan)
+            ->where('venue_id', $request->venue_id)
+            ->sum('harga');
+
+        // Simpan data booking dengan total harga
         $booking = Booking::create([
-            'user_id' => $user->id, // ID user yang melakukan booking
-            'venue_id' => $request->venue_id, // ID venue
-            'jumlah_orang' => $request->jumlah_orang, // Jumlah orang
-            'bukti_pembayaran' => $buktiPath, // Path bukti pembayaran (jika ada)
-            'provider_id' => $request->provider_id, // ID provider pembayaran (optional)
-            'total_harga' => $request->total_harga, // Total harga booking
-            'status' => 'menunggu' // Status booking (menunggu konfirmasi)
+            'user_id' => $user->id,
+            'venue_id' => $request->venue_id,
+            'jumlah_orang' => $request->jumlah_orang,
+            'bukti_pembayaran' => $buktiPath,
+            'provider_id' => $request->provider_id,
+            'total_harga' => $totalHarga,
+            'status' => 'menunggu'
         ]);
 
-        // Mengambil menu yang valid berdasarkan ID yang diberikan dalam request
-        $validMenus = Menu::whereIn('id', array_column($request->menu_pesanan, 'menu_id'))
-            ->where('venue_id', $request->venue_id) // Pastikan menu hanya dari venue yang sesuai
-            ->get();
-
-        // Menyiapkan data untuk melakukan relasi dengan tabel pivot
-        $menuSyncData = [];
-        foreach ($validMenus as $menu) {
-            // Menambahkan data jumlah pesanan untuk setiap menu yang valid
-            $menuSyncData[$menu->id] = [
-                'jumlah_pesanan' => collect($request->menu_pesanan)
-                    ->firstWhere('menu_id', $menu->id)['jumlah']
-            ];
+        // Jika ada menu yang valid, tambahkan ke booking
+        if (!empty($request->menu_pesanan)) {
+            $booking->menus()->sync($request->menu_pesanan);
         }
 
-        // Jika ada data menu yang valid, lakukan sinkronisasi dengan tabel pivot booking_menus
-        if (!empty($menuSyncData)) {
-            $booking->menus()->sync($menuSyncData);
-        }
+        // Load relations agar data menu, venue, dan user muncul dalam response JSON
+        $booking->load(['menus', 'venue:id,nama', 'user:id,username']);
 
-        // Memuat data terkait menu yang telah dipesan
-        $booking->load(['menus' => function ($query) {
-            $query->select('menus.id', 'menus.nama', 'menus.deskripsi', 'menus.harga', 'menus.foto', 'menus.kategori')
-                ->withPivot('jumlah_pesanan'); // Termasuk jumlah pesanan di tabel pivot
-        }]);
-
-        // Mengembalikan response JSON dengan data booking yang baru dibuat
         return response()->json([
             'message' => 'Booking berhasil dibuat, menunggu konfirmasi.',
             'data' => $booking
         ], 201);
     }
+
+
+
+
+
     public function ambilBookingByVenue($venueId)
     {
         $user = Auth::user();
@@ -103,6 +90,8 @@ class BookingController extends Controller
             'data' => $bookings
         ], 200);
     }
+
+
     public function ambilBookingByVenueAndId($venueId, $bookingId)
     {
         $user = Auth::user();
@@ -140,6 +129,8 @@ class BookingController extends Controller
             'data' => $booking->makeHidden(['user_id', 'venue_id', 'created_at', 'updated_at'])
         ], 200);
     }
+
+
     public function updateStatusBooking(Request $request, $venueId, $bookingId)
     {
         $user = Auth::user();
@@ -180,6 +171,7 @@ class BookingController extends Controller
             ]
         ], 200);
     }
+
     public function ambilBookingUser()
     {
         $user = Auth::user();

@@ -8,6 +8,7 @@ use Illuminate\Http\Request;
 
 
 use App\Models\User;
+use App\Models\Venue;
 
 class AuthController extends Controller
 {
@@ -98,6 +99,9 @@ class AuthController extends Controller
             ], 401);
         }
 
+        // Ambil venue yang terkait dengan admin_venue (jika user adalah admin venue)
+        $venue = Venue::where('admin_id', $user->id)->first();
+
         return response()->json([
             'message' => 'User is authenticated',
             'user' => [
@@ -106,9 +110,11 @@ class AuthController extends Controller
                 'email' => $user->email,
                 'role' => $user->role,
             ],
+            'venue' => $venue ? [
+                'venueId' => $venue->id,
+            ] : null, // Jika tidak ada venue, kembalikan null
         ]);
     }
-
     public function keluar()
     {
         // Pastikan pengguna sudah terautentikasi

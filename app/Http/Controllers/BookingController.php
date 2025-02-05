@@ -18,7 +18,7 @@ class BookingController extends Controller
         'menu_pesanan' => 'required|array',
         'menu_pesanan.*' => 'exists:menus,id',
         'jumlah_orang' => 'required|integer|min:1',
-        'bukti_pembayaran' => 'nullable|image|mimes:jpg,png,jpeg|max:2048',
+        'bukti_pembayaran' => 'nullable',
         'provider_id' => 'nullable|exists:provider_pembayarans,id'
     ]);
 

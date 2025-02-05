@@ -20,7 +20,8 @@ class MenuResources extends JsonResource
         'deskripsi' => $this->deskripsi,
         'harga' => $this->harga,
         'foto' => $this->foto,
-        'kategori' => $this->kategori
+        'kategori' => $this->kategori,
+        'status' => $this->kesediaan ? 'aktif' : 'tidak_aktif'
        
         ];
     }

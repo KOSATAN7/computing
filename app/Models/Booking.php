@@ -16,8 +16,10 @@ class Booking extends Model
         'venue_id',
         'jumlah_orang',
         'bukti_pembayaran',
+        'provider_id', 
         'status'
     ];
+
 
     public function user(): BelongsTo
     {
@@ -33,4 +35,10 @@ class Booking extends Model
     {
         return $this->belongsToMany(Menu::class, 'booking_menu', 'booking_id', 'menu_id')->withTimestamps();
     }
+
+    public function provider()
+{
+    return $this->belongsTo(ProviderPembayaran::class, 'provider_id');
+}
+
 }

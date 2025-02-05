@@ -12,13 +12,13 @@ return new class extends Migration
             $table->id();
             $table->foreignId('user_id')->constrained('users')->onDelete('cascade');
             $table->foreignId('venue_id')->constrained('venues')->onDelete('cascade');
+            $table->foreignId('provider_id')->nullable()->constrained('provider_pembayarans')->onDelete('set null'); // Ubah ke provider_pembayarans
             $table->integer('jumlah_orang');
             $table->string('bukti_pembayaran')->nullable();
             $table->enum('status', ['menunggu', 'berhasil', 'dibatalkan'])->default('menunggu');
             $table->timestamps();
         });
 
-        // Pivot table untuk menu pesanan dalam booking
         Schema::create('booking_menu', function (Blueprint $table) {
             $table->id();
             $table->foreignId('booking_id')->constrained('bookings')->onDelete('cascade');
@@ -26,6 +26,7 @@ return new class extends Migration
             $table->timestamps();
         });
     }
+
 
     public function down(): void
     {

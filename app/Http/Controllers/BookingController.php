@@ -18,7 +18,8 @@ class BookingController extends Controller
             'menu_pesanan' => 'required|array',
             'menu_pesanan.*' => 'exists:menus,id',
             'jumlah_orang' => 'required|integer|min:1',
-            'bukti_pembayaran' => 'nullable|image|mimes:jpg,png,jpeg|max:2048'
+            'bukti_pembayaran' => 'nullable|image|mimes:jpg,png,jpeg|max:2048',
+            'provider_id' => 'nullable|exists:provider_pembayarans,id'
         ]);
 
         $user = Auth::user();
@@ -28,13 +29,13 @@ class BookingController extends Controller
             ? $request->file('bukti_pembayaran')->storeAs('', $request->file('bukti_pembayaran')->hashName(), 'local')
             : null;
 
-
-        // Simpan data booking
+        // Simpan data booking dengan provider_id
         $booking = Booking::create([
             'user_id' => $user->id,
             'venue_id' => $request->venue_id,
             'jumlah_orang' => $request->jumlah_orang,
             'bukti_pembayaran' => $buktiPath,
+            'provider_id' => $request->provider_id,
             'status' => 'menunggu'
         ]);
 
@@ -57,25 +58,28 @@ class BookingController extends Controller
         ], 201);
     }
 
+
     public function ambilBookingByVenue($venueId)
     {
         $user = Auth::user();
-
-        // Ambil semua venue yang dimiliki oleh admin yang sedang login
         $venueIds = $user->managedVenues()->pluck('id');
 
-        // Jika admin mencoba melihat venue yang tidak dia kelola
+
         if (!$venueIds->contains($venueId)) {
             return response()->json([
                 'message' => 'Anda tidak punya akses terhadap venue ini'
             ], 403);
         }
 
-        // Ambil semua booking untuk venue tertentu, sertakan user (username) dan venue
-        $bookings = Booking::with(['venue:id,nama', 'user:id,username', 'menus:id,nama,deskripsi,harga,foto,kategori,kesediaan'])
+        $bookings = Booking::with([
+            'venue:id,nama',
+            'user:id,username',
+            'provider:id,nama',
+            'menus:id,nama,deskripsi,harga,foto,kategori,kesediaan'
+        ])
             ->where('venue_id', $venueId)
             ->get()
-            ->makeHidden(['user_id', 'venue_id', 'created_at', 'updated_at']); // Sembunyikan kolom yang tidak diperlukan
+            ->makeHidden(['user_id', 'venue_id', 'provider_id', 'created_at', 'updated_at']);
 
         return response()->json([
             'message' => 'Data booking untuk venue ini',
@@ -83,27 +87,33 @@ class BookingController extends Controller
         ], 200);
     }
 
+
     public function ambilBookingByVenueAndId($venueId, $bookingId)
     {
         $user = Auth::user();
 
-        // Ambil semua venue yang dimiliki oleh admin yang sedang login
+
         $venueIds = $user->managedVenues()->pluck('id');
 
-        // Jika admin mencoba melihat venue yang tidak dia kelola
+
         if (!$venueIds->contains($venueId)) {
             return response()->json([
                 'message' => 'Anda tidak punya akses terhadap venue ini'
             ], 403);
         }
 
-        // Ambil booking berdasarkan venue_id dan booking_id
-        $booking = Booking::with(['venue:id,nama', 'user:id,username', 'menus:id,nama,deskripsi,harga,foto,kategori,kesediaan'])
+
+        $booking = Booking::with([
+            'venue:id,nama',
+            'user:id,username',
+            'provider:id,nama',
+            'menus:id,nama,deskripsi,harga,foto,kategori,kesediaan'
+        ])
             ->where('venue_id', $venueId)
             ->where('id', $bookingId)
             ->first();
 
-        // Jika booking tidak ditemukan
+
         if (!$booking) {
             return response()->json([
                 'message' => 'Booking tidak ditemukan'
@@ -116,26 +126,27 @@ class BookingController extends Controller
         ], 200);
     }
 
+
     public function updateStatusBooking(Request $request, $venueId, $bookingId)
     {
         $user = Auth::user();
 
-        // Ambil semua venue yang dimiliki oleh admin yang sedang login
+
         $venueIds = $user->managedVenues()->pluck('id');
 
-        // Jika admin mencoba mengubah status booking di venue yang tidak dia kelola
+
         if (!$venueIds->contains($venueId)) {
             return response()->json([
                 'message' => 'Anda tidak punya akses terhadap venue ini'
             ], 403);
         }
 
-        // Validasi input status
+
         $request->validate([
             'status' => 'required|in:menunggu,berhasil,dibatalkan'
         ]);
 
-        // Cari booking berdasarkan venue_id dan booking_id
+
         $booking = Booking::where('venue_id', $venueId)->where('id', $bookingId)->first();
 
         if (!$booking) {
@@ -144,7 +155,7 @@ class BookingController extends Controller
             ], 404);
         }
 
-        // Update status booking
+
         $booking->status = $request->status;
         $booking->save();
 
@@ -161,10 +172,15 @@ class BookingController extends Controller
     {
         $user = Auth::user();
 
-        $bookings = Booking::with(['venue:id,nama', 'menus:id,nama,deskripsi,harga,foto,kategori,kesediaan'])
+
+        $bookings = Booking::with([
+            'venue:id,nama',
+            'provider:id,nama',
+            'menus:id,nama,deskripsi,harga,foto,kategori,kesediaan'
+        ])
             ->where('user_id', $user->id)
             ->get()
-            ->makeHidden(['user_id', 'venue_id', 'created_at', 'updated_at']); 
+            ->makeHidden(['user_id', 'venue_id', 'created_at', 'updated_at']);
 
         return response()->json([
             'message' => 'Data booking Anda ditemukan',

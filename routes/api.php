@@ -195,7 +195,7 @@ Route::prefix('venue')->controller(VenueController::class)->group(function () {
     Route::get('/{id}', 'detailVenue');
 });
 
-Route::prefix('')->controller(MenuController::class)->group(function () {
+Route::prefix('menus')->controller(MenuController::class)->group(function () {
     Route::get('/venue/{venueId}/tersedia', 'menuAktifBerdasarkanVenue'); // Bisa diakses tanpa login
 });
 

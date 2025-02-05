@@ -11,54 +11,53 @@ use Illuminate\Support\Facades\Auth;
 class BookingController extends Controller
 {
     public function buatBooking(Request $request)
-    {
-        // Validasi inputan
-        $request->validate([
-            'venue_id' => 'required|exists:venues,id',
-            'menu_pesanan' => 'required|array',
-            'menu_pesanan.*' => 'exists:menus,id',
-            'jumlah_orang' => 'required|integer|min:1',
-            'bukti_pembayaran' => 'nullable|image|mimes:jpg,png,jpeg|max:2048',
-            'provider_id' => 'nullable|exists:provider_pembayarans,id'
-        ]);
+{
+    // Validasi inputan
+    $request->validate([
+        'venue_id' => 'required|exists:venues,id',
+        'menu_pesanan' => 'required|array',
+        'menu_pesanan.*' => 'exists:menus,id',
+        'jumlah_orang' => 'required|integer|min:1',
+        'bukti_pembayaran' => 'nullable|image|mimes:jpg,png,jpeg|max:2048',
+        'provider_id' => 'nullable|exists:provider_pembayarans,id'
+    ]);
 
-        $user = Auth::user();
+    $user = Auth::user();
 
-        // Simpan bukti pembayaran jika ada
-        $buktiPath = $request->file('bukti_pembayaran')
-            ? $request->file('bukti_pembayaran')->storeAs('', $request->file('bukti_pembayaran')->hashName(), 'local')
-            : null;
+    // Simpan bukti pembayaran jika ada
+    $buktiPath = $request->file('bukti_pembayaran')
+        ? $request->file('bukti_pembayaran')->storeAs('', $request->file('bukti_pembayaran')->hashName(), 'local')
+        : null;
 
-        // Hitung total harga berdasarkan menu yang dipilih
-        $totalHarga = Menu::whereIn('id', $request->menu_pesanan)
-            ->where('venue_id', $request->venue_id)
-            ->sum('harga');
+    // Hitung total harga berdasarkan menu yang dipilih
+    $totalHarga = Menu::whereIn('id', $request->menu_pesanan)
+        ->where('venue_id', $request->venue_id)
+        ->sum('harga');
 
-        // Simpan data booking dengan total harga
-        $booking = Booking::create([
-            'user_id' => $user->id,
-            'venue_id' => $request->venue_id,
-            'jumlah_orang' => $request->jumlah_orang,
-            'bukti_pembayaran' => $buktiPath,
-            'provider_id' => $request->provider_id,
-            'total_harga' => $totalHarga,
-            'status' => 'menunggu'
-        ]);
+    // Simpan data booking dengan total harga
+    $booking = Booking::create([
+        'user_id' => $user->id,
+        'venue_id' => $request->venue_id,
+        'jumlah_orang' => $request->jumlah_orang,
+        'bukti_pembayaran' => $buktiPath,
+        'provider_id' => $request->provider_id,
+        'total_harga' => $totalHarga,
+        'status' => 'menunggu'
+    ]);
 
-        // Jika ada menu yang valid, tambahkan ke booking
-        if (!empty($request->menu_pesanan)) {
-            $booking->menus()->sync($request->menu_pesanan);
-        }
-
-        // Load relations agar data menu, venue, dan user muncul dalam response JSON
-        $booking->load(['menus', 'venue:id,nama', 'user:id,username']);
-
-        return response()->json([
-            'message' => 'Booking berhasil dibuat, menunggu konfirmasi.',
-            'data' => $booking
-        ], 201);
+    // Jika ada menu yang valid, tambahkan ke booking
+    if (!empty($request->menu_pesanan)) {
+        $booking->menus()->sync($request->menu_pesanan);
     }
 
+    // Load relations agar data menu, venue, dan user muncul dalam response JSON
+    $booking->load(['menus', 'venue:id,nama', 'user:id,username']);
+
+    return response()->json([
+        'message' => 'Booking berhasil dibuat, menunggu konfirmasi.',
+        'data' => $booking
+    ], 201);
+}
 
 
 

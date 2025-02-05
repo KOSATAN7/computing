@@ -34,6 +34,7 @@ class VenueController extends Controller
                 'latitude' => 'required|string',
                 'longitude' => 'required|string',
                 'kontak' => 'required|string',
+                'foto_utama' => 'nullable|file',
                 'foto_foto.*' => 'nullable',
                 'video' => 'nullable|file|mimes:mp4|max:10240',
             ]);

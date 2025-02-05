@@ -34,8 +34,8 @@ class VenueController extends Controller
                 'latitude' => 'required|string',
                 'longitude' => 'required|string',
                 'kontak' => 'required|string',
-                'foto_utama' => 'nullable|file|mimes:jpg,jpeg,png|max:2048',
-                'foto_foto.*' => 'nullable|file|mimes:jpg,jpeg,png|max:2048',
+                'foto_utama' => 'nullable',
+                'foto_foto.*' => 'nullable',
                 'video' => 'nullable|file|mimes:mp4|max:10240',
             ]);
 
@@ -551,7 +551,7 @@ class VenueController extends Controller
 
     public function tambahFavorit($venueId)
     {
-        $user = Auth::user();
+        $user = User::user();
 
         if (!$user) {
             return response()->json(['message' => 'Anda harus login untuk menambahkan favorit.'], 401);
@@ -574,7 +574,7 @@ class VenueController extends Controller
     // Hapus venue dari favorit user
     public function hapusFavorit($venueId)
     {
-        $user = Auth::user();
+        $user = User::user();
 
         if (!$user) {
             return response()->json(['message' => 'Anda harus login untuk menghapus favorit.'], 401);
@@ -597,13 +597,13 @@ class VenueController extends Controller
     // Ambil daftar venue yang difavoritkan oleh user tertentu
     public function ambilFavorit()
     {
-        $user = Auth::user();
+        $user = User::user();
 
         if (!$user) {
             return response()->json(['message' => 'Anda harus login untuk melihat favorit.'], 401);
         }
 
-        
+
 
         $favorites = $user->favoriteVenues()->get();
 

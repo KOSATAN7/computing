@@ -14,12 +14,12 @@ class Booking extends Model
     protected $fillable = [
         'user_id',
         'venue_id',
+        'provider_id',
         'jumlah_orang',
+        'total_harga',
         'bukti_pembayaran',
-        'provider_id', 
         'status'
     ];
-
 
     public function user(): BelongsTo
     {
@@ -31,14 +31,15 @@ class Booking extends Model
         return $this->belongsTo(Venue::class);
     }
 
-    public function menus()
+    public function menus(): BelongsToMany
     {
-        return $this->belongsToMany(Menu::class, 'booking_menu', 'booking_id', 'menu_id')->withTimestamps();
+        return $this->belongsToMany(Menu::class, 'booking_menu', 'booking_id', 'menu_id')
+            ->withPivot('jumlah_pesanan')
+            ->withTimestamps();
     }
 
-    public function provider()
-{
-    return $this->belongsTo(ProviderPembayaran::class, 'provider_id');
-}
-
+    public function provider(): BelongsTo
+    {
+        return $this->belongsTo(ProviderPembayaran::class, 'provider_id');
+    }
 }

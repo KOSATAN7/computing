@@ -12,8 +12,9 @@ return new class extends Migration
             $table->id();
             $table->foreignId('user_id')->constrained('users')->onDelete('cascade');
             $table->foreignId('venue_id')->constrained('venues')->onDelete('cascade');
-            $table->foreignId('provider_id')->nullable()->constrained('provider_pembayarans')->onDelete('set null'); // Ubah ke provider_pembayarans
+            $table->foreignId('provider_id')->nullable()->constrained('provider_pembayarans')->onDelete('set null');
             $table->integer('jumlah_orang');
+            $table->integer('total_harga'); 
             $table->string('bukti_pembayaran')->nullable();
             $table->enum('status', ['menunggu', 'berhasil', 'dibatalkan'])->default('menunggu');
             $table->timestamps();
@@ -23,10 +24,10 @@ return new class extends Migration
             $table->id();
             $table->foreignId('booking_id')->constrained('bookings')->onDelete('cascade');
             $table->foreignId('menu_id')->constrained('menus')->onDelete('cascade');
+            $table->integer('jumlah_pesanan')->default(1); // Perbaikan di sini
             $table->timestamps();
         });
     }
-
 
     public function down(): void
     {

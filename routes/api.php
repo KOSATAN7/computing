@@ -76,6 +76,10 @@ Route::middleware(['auth:sanctum', CheckSuperAdmin::class])
         Route::delete('/{id}', 'hapusMetodePembayaran');
     });
 
+
+
+
+// ----------------------------------------------------------------------------------------------------------------
 // Admin Venue | Kelola Profil
 Route::middleware(['auth:sanctum', CheckAdminVenue::class])
     ->prefix('profil/venue')
@@ -123,9 +127,9 @@ Route::middleware(['auth:sanctum', CheckAdminVenue::class])
         Route::delete('/{id}', 'hapusProviderPembayaran');
     });
 
-
+// Admin Venue | get data metode pembayaran
 Route::middleware(['auth:sanctum'])->group(function () {
-    Route::get('/list-metode', [MetodePembayaranController::class,'ambilMetodeUntukAV']);
+    Route::get('/list-metode', [MetodePembayaranController::class, 'ambilMetodeUntukAV']);
 });
 
 // Admin Venue | Kelola Booking
@@ -134,8 +138,15 @@ Route::middleware(['auth:sanctum', CheckAdminVenue::class])
     ->controller(BookingController::class)
     ->group(function () {
         Route::get('/venue/{venueId}/booking',  'ambilBookingByVenue');
+        Route::get('/venue/{venueId}/booking/{bookingId}',  'ambilBookingByVenueAndId');
+        Route::patch('/venue/{venueId}/booking/{bookingId}/status',  'updateStatusBooking');
     });
 
+
+
+
+
+// ---------------------------------------------------------------------------------------------------------------------
 // Venue Favorit | Infobar
 Route::middleware(['auth:sanctum', CheckInfobar::class])
     ->prefix('favorit')
@@ -152,8 +163,7 @@ Route::middleware(['auth:sanctum'])
     ->controller(BookingController::class)
     ->group(function () {
         Route::post('/', 'buatBooking');
-        Route::get('/',  'ambilSemuaBooking');
-        Route::get('/{id}',  'ambilBooking');
+        Route::get('/user',  'ambilBookingUser');
         Route::patch('/{id}/confirm', 'konfirmasiBooking');
         Route::patch('/{id}/cancel',  'batalkanBooking');
     });
@@ -185,21 +195,21 @@ Route::prefix('venue')->controller(VenueController::class)->group(function () {
     Route::get('/{id}', 'detailVenue');
 });
 
-Route::prefix('menus')->controller(MenuController::class)->group(function () {
+Route::prefix('')->controller(MenuController::class)->group(function () {
     Route::get('/venue/{venueId}/tersedia', 'menuAktifBerdasarkanVenue'); // Bisa diakses tanpa login
 });
 
 
 // Pengambilan File Venue
-use Illuminate\Support\Facades\Storage;
-use Illuminate\Support\Facades\Response;
+// use Illuminate\Support\Facades\Storage;
+// use Illuminate\Support\Facades\Response;
 
-Route::get('/gambar/{filename}', function ($filename) {
-    $path = storage_path('app/public/' . $filename); // Ambil dari storage/app/public/
+// Route::get('/gambar/{filename}', function ($filename) {
+//     $path = storage_path('app/public/' . $filename); // Ambil dari storage/app/public/
 
-    if (!file_exists($path)) {
-        abort(404);
-    }
+//     if (!file_exists($path)) {
+//         abort(404);
+//     }
 
-    return Response::file($path);
-});
+//     return Response::file($path);
+// });

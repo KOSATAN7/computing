@@ -21,6 +21,7 @@ class VenueController extends Controller
     public function buatVenue(Request $request)
     {
         try {
+            // Validasi input
             $validated = $request->validate([
                 'username' => 'required|string|max:255',
                 'email' => 'required|email|unique:users,email',
@@ -34,41 +35,39 @@ class VenueController extends Controller
                 'latitude' => 'required|string',
                 'longitude' => 'required|string',
                 'kontak' => 'required|string',
-                'foto_utama' => 'nullable|image',
-                'foto_foto.*' => 'nullable|image',
+                'foto_utama' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
+                'foto_foto.*' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
                 'video' => 'nullable|file|mimes:mp4|max:10240',
             ]);
 
-            // Cek apakah file diterima
+            // Upload foto utama jika ada
+            $fotoUtamaPath = null;
+            $fotoUtamaUrl = null;
             if ($request->hasFile('foto_utama')) {
-                $fotoUtama = $request->file('foto_utama');
-                if (!$fotoUtama->isValid()) {
-                    return response()->json([
-                        'message' => 'Gagal upload foto utama.',
-                        'error' => $fotoUtama->getErrorMessage(),
-                    ], 500);
-                }
-
-                $fotoUtamaPath = FileService::uploadFile($fotoUtama, 'venues');
-            } else {
-                $fotoUtamaPath = null;
+                $fotoUtamaPath = $request->file('foto_utama')->store('venues', 'public');
+                $fotoUtamaUrl = asset('storage/' . $fotoUtamaPath); // Full URL
             }
 
-            // Cek apakah multiple files diterima
+            // Upload multiple foto jika ada
             $fotoFotoPaths = [];
+            $fotoFotoUrls = [];
             if ($request->hasFile('foto_foto')) {
                 foreach ($request->file('foto_foto') as $file) {
-                    if (!$file->isValid()) {
-                        return response()->json([
-                            'message' => 'Gagal upload salah satu foto_foto.',
-                            'error' => $file->getErrorMessage(),
-                        ], 500);
-                    }
-                    $fotoFotoPaths[] = FileService::uploadFile($file, 'venues');
+                    $filePath = $file->store('venues', 'public');
+                    $fotoFotoPaths[] = $filePath;
+                    $fotoFotoUrls[] = asset('storage/' . $filePath); // Full URL
                 }
             }
 
-            // Simpan data ke database
+            // Upload video jika ada
+            $videoPath = null;
+            $videoUrl = null;
+            if ($request->hasFile('video')) {
+                $videoPath = $request->file('video')->store('venues/videos', 'public');
+                $videoUrl = asset('storage/' . $videoPath); // Full URL
+            }
+
+            // Buat akun admin venue
             $admin = User::create([
                 'username' => $validated['username'],
                 'email' => $validated['email'],
@@ -76,18 +75,20 @@ class VenueController extends Controller
                 'role' => 'admin_venue',
             ]);
 
+            // Simpan data venue ke database
             $venue = Venue::create([
                 'admin_id' => $admin->id,
                 'nama' => $validated['nama'],
                 'alamat' => $validated['alamat'],
                 'kapasitas' => $validated['kapasitas'],
-                'fasilitas' => $validated['fasilitas'],
+                'fasilitas' => json_encode($validated['fasilitas']), // Simpan sebagai JSON
                 'kota' => $validated['kota'],
                 'latitude' => $validated['latitude'],
                 'longitude' => $validated['longitude'],
                 'kontak' => $validated['kontak'],
                 'foto_utama' => $fotoUtamaPath,
-                'foto_foto' => json_encode($fotoFotoPaths),
+                'foto_foto' => json_encode($fotoFotoPaths), // Simpan array foto sebagai JSON
+                'video' => $videoPath,
             ]);
 
             return response()->json([
@@ -95,9 +96,22 @@ class VenueController extends Controller
                 'message' => 'Venue dan Admin Venue berhasil dibuat.',
                 'payload' => [
                     'admin' => $admin,
-                    'venue' => $venue,
+                    'venue' => [
+                        'id' => $venue->id,
+                        'nama' => $venue->nama,
+                        'alamat' => $venue->alamat,
+                        'kapasitas' => $venue->kapasitas,
+                        'fasilitas' => json_decode($venue->fasilitas),
+                        'kota' => $venue->kota,
+                        'latitude' => $venue->latitude,
+                        'longitude' => $venue->longitude,
+                        'kontak' => $venue->kontak,
+                        'foto_utama' => $fotoUtamaUrl, // Kirim URL lengkap
+                        'foto_foto' => $fotoFotoUrls,  // Kirim URL lengkap dalam array
+                        'video' => $videoUrl, // Kirim URL lengkap jika ada
+                    ],
                 ],
-            ]);
+            ], 201);
         } catch (\Exception $e) {
             return response()->json([
                 'message' => 'Terjadi kesalahan saat mengunggah file.',

@@ -62,7 +62,6 @@ class AuthController extends Controller
     public function masuk(Request $request)
     {
 
-        // Cari user berdasarkan email
         $user = User::where('email', $request->email)->first();
 
         if (!$user || !Hash::check($request->password, $user->password)) {
@@ -90,7 +89,7 @@ class AuthController extends Controller
 
     public function cekMasuk()
     {
-        // Pastikan pengguna sudah terautentikasi
+
         $user = Auth::user();
 
         if (!$user) {
@@ -99,7 +98,7 @@ class AuthController extends Controller
             ], 401);
         }
 
-        // Ambil venue yang terkait dengan admin_venue (jika user adalah admin venue)
+
         $venue = Venue::where('admin_id', $user->id)->first();
 
         return response()->json([
@@ -112,12 +111,12 @@ class AuthController extends Controller
             ],
             'venue' => $venue ? [
                 'venueId' => $venue->id,
-            ] : null, // Jika tidak ada venue, kembalikan null
+            ] : null, 
         ]);
     }
     public function keluar()
     {
-        // Pastikan pengguna sudah terautentikasi
+
         $user = Auth::user();
 
         if (!$user) {
@@ -126,7 +125,7 @@ class AuthController extends Controller
             ], 401);
         }
 
-        // Hapus semua token pengguna
+
         $user->tokens()->delete();
 
         return response()->json([

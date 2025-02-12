@@ -114,31 +114,13 @@ class VenueController extends Controller
             ], 201);
         } catch (\Exception $e) {
             return response()->json([
-                'message' => 'Terjadi kesalahan saat mengunggah file.',
-                'error' => $e->getMessage(),
+                'message' => $e->getMessage(),
                 'trace' => $e->getTrace(),
             ], 500);
         }
     }
-    public function ambilSemuaVenue()
-    {
-
-        $venues = Venue::all();
-
-        if ($venues->isEmpty()) {
-            return response()->json([
-                'message' => 'Data venue kosong.'
-            ], 404);
-        }
-
-        return response()->json([
-            'message' => 'Sukses mengambil semua data venue.',
-            'data' => VenueResources::collection($venues),
-        ]);
-    }
     public function ubahVenue(Request $request, $id)
     {
-
         $venue = Venue::find($id);
 
         if (!$venue) {
@@ -147,7 +129,6 @@ class VenueController extends Controller
                 'code' => 404,
             ], 404);
         }
-
 
         $validatedData = $request->validate([
             'nama' => 'string|max:255',
@@ -164,34 +145,26 @@ class VenueController extends Controller
             'video' => 'file|mimes:mp4|max:2048',
         ]);
 
+        // ✅ Pastikan foto utama diperbarui jika ada
         if ($request->hasFile('foto_utama')) {
             FileService::deleteFile($venue->foto_utama);
             $validatedData['foto_utama'] = FileService::uploadFile($request->file('foto_utama'), 'venues');
         }
 
-
+        // ✅ Pastikan foto_foto diperbarui jika ada
         if ($request->hasFile('foto_foto')) {
             if (!empty($venue->foto_foto)) {
-                FileService::deleteMultipleFiles($venue->foto_foto);
+                FileService::deleteMultipleFiles(json_decode($venue->foto_foto, true));
             }
+            // ✅ Simpan langsung sebagai array tanpa `json_encode()`
             $validatedData['foto_foto'] = FileService::uploadMultipleFiles($request->file('foto_foto'), 'venues');
+        } else {
+            // Jika tidak ada update foto, biarkan tetap seperti yang ada
+            $validatedData['foto_foto'] = $venue->foto_foto;
         }
 
-
-
-        $venue->update([
-            'nama' => $validatedData['nama'] ?? $venue->nama,
-            'alamat' => $validatedData['alamat'] ?? $venue->alamat,
-            'kapasitas' => $validatedData['kapasitas'] ?? $venue->kapasitas,
-            'fasilitas' => $validatedData['fasilitas'] ?? $venue->fasilitas,
-            'kota' => $validatedData['kota'] ?? $venue->kota,
-            'latitude' => $validatedData['latitude'] ?? $venue->latitude,
-            'longitude' => $validatedData['longitude'] ?? $venue->longitude,
-            'kontak' => $validatedData['kontak'] ?? $venue->kontak,
-            'status' => $validatedData['status'] ?? $venue->status,
-            'foto_utama' => $validatedData['foto_utama'] ?? $venue->foto_utama,
-            'foto_foto' => $validatedData['foto_foto'] ?? $venue->foto_foto,
-        ]);
+        // ✅ Simpan perubahan
+        $venue->update($validatedData);
 
         return response()->json([
             'message' => 'Sukses mengupdate data venue.',
@@ -457,9 +430,7 @@ class VenueController extends Controller
         ], 200);
     }
 
-
-
-
+    
     // Semua Role && Unauth
     public function ambilSemuaVenueAktif()
     {
@@ -516,23 +487,7 @@ class VenueController extends Controller
             'data' => VenueResources::collection($venues)
         ], 200);
     }
-    public function detailVenue($id)
-    {
-        $venue = Venue::find($id);
 
-        if (!$venue) {
-            return response()->json([
-                'message' => 'Data tidak ditemukan.',
-                'code' => 404
-            ], 404);
-        }
-
-        return response()->json([
-            'message' => 'Sukses mengambil data.',
-            'code' => 200,
-            'payload' => new VenueResources($venue)
-        ], 200);
-    }
     public function ambilPertandinganAktifDariVenue($venueId)
     {
         $adminId = Auth::id();
@@ -583,8 +538,6 @@ class VenueController extends Controller
     }
 
 
-
-
     // Hapus venue dari favorit user
     public function hapusFavorit($venueId)
     {
@@ -604,26 +557,37 @@ class VenueController extends Controller
 
         return response()->json(['message' => 'Venue berhasil dihapus dari favorit'], 200);
     }
-
-
-
-
-    // Ambil daftar venue yang difavoritkan oleh user tertentu
-    public function ambilFavorit()
+    public function ambilSemuaVenue()
     {
-        $user = User::user();
+        $venues = Venue::all();
 
-        if (!$user) {
-            return response()->json(['message' => 'Anda harus login untuk melihat favorit.'], 401);
+        if ($venues->isEmpty()) {
+            return response()->json([
+                'message' => 'Data venue kosong.'
+            ], 404);
         }
 
 
+        return response()->json([
+            'message' => 'Sukses mengambil semua data venue.',
+            'data' => VenueResources::collection($venues)
+        ]);
+    }
+    public function detailVenue($id)
+    {
+        $venue = Venue::find($id);
 
-        $favorites = $user->favoriteVenues()->get();
+        if (!$venue) {
+            return response()->json([
+                'message' => 'Data tidak ditemukan.',
+                'code' => 404
+            ], 404);
+        }
 
         return response()->json([
-            'message' => 'Sukses mengambil daftar venue favorit.',
-            'data' => $favorites,
-        ]);
+            'message' => 'Sukses mengambil data venue.',
+            'code' => 200,
+            'payload' => new VenueResources($venue),
+        ], 200);
     }
 }

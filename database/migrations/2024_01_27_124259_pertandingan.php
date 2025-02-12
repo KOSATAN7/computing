@@ -11,6 +11,7 @@ return new class extends Migration {
             $table->id();
             $table->string('cabang_olahraga');
             $table->string('liga');
+            $table->string('foto')->nullable();
             $table->string('tim_tuan_rumah');
             $table->string('logo_tuan_rumah');
             $table->string('tim_tamu');

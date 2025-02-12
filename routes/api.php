@@ -204,18 +204,3 @@ Route::prefix('venue')->controller(VenueController::class)->group(function () {
 Route::prefix('menus')->controller(MenuController::class)->group(function () {
     Route::get('/venue/{venueId}/tersedia', 'menuAktifBerdasarkanVenue'); // Bisa diakses tanpa login
 });
-
-
-// Pengambilan File Venue
-// use Illuminate\Support\Facades\Storage;
-// use Illuminate\Support\Facades\Response;
-
-// Route::get('/gambar/{filename}', function ($filename) {
-//     $path = storage_path('app/public/' . $filename); // Ambil dari storage/app/public/
-
-//     if (!file_exists($path)) {
-//         abort(404);
-//     }
-
-//     return Response::file($path);
-// });

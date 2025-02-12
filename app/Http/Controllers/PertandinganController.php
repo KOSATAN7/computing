@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Pertandingan;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
 
 class PertandinganController extends Controller
 {
@@ -29,14 +30,45 @@ class PertandinganController extends Controller
             'logo_tamu' => 'required|url',
             'tanggal_pertandingan' => 'required|date',
             'waktu_pertandingan' => 'required',
+            'foto' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048', // Foto harus berupa gambar
         ]);
 
-        $pertandingan = Pertandingan::create($request->all());
+        // Upload foto jika ada
+        $fotoPath = null;
+        $fotoUrl = null;
+        if ($request->hasFile('foto')) {
+            $fotoPath = $request->file('foto')->store('pertandingan', 'public');
+            $fotoUrl = asset('storage/' . $fotoPath); // URL lengkap
+        }
+
+        // Simpan data pertandingan
+        $pertandingan = Pertandingan::create([
+            'cabang_olahraga' => $request->cabang_olahraga,
+            'liga' => $request->liga,
+            'tim_tuan_rumah' => $request->tim_tuan_rumah,
+            'logo_tuan_rumah' => $request->logo_tuan_rumah,
+            'tim_tamu' => $request->tim_tamu,
+            'logo_tamu' => $request->logo_tamu,
+            'tanggal_pertandingan' => $request->tanggal_pertandingan,
+            'waktu_pertandingan' => $request->waktu_pertandingan,
+            'foto' => $fotoPath, // Simpan path asli di database
+        ]);
 
         return response()->json([
             'success' => true,
             'message' => 'Pertandingan berhasil dibuat.',
-            'data' => $pertandingan,
+            'data' => [
+                'id' => $pertandingan->id,
+                'cabang_olahraga' => $pertandingan->cabang_olahraga,
+                'liga' => $pertandingan->liga,
+                'tim_tuan_rumah' => $pertandingan->tim_tuan_rumah,
+                'logo_tuan_rumah' => $pertandingan->logo_tuan_rumah,
+                'tim_tamu' => $pertandingan->tim_tamu,
+                'logo_tamu' => $pertandingan->logo_tamu,
+                'tanggal_pertandingan' => $pertandingan->tanggal_pertandingan,
+                'waktu_pertandingan' => $pertandingan->waktu_pertandingan,
+                'foto' => $fotoUrl, // Kirim URL lengkap
+            ],
         ]);
     }
     public function ambilDetailPertandingan($id)
@@ -52,9 +84,21 @@ class PertandinganController extends Controller
 
         return response()->json([
             'success' => true,
-            'data' => $pertandingan,
+            'data' => [
+                'id' => $pertandingan->id,
+                'cabang_olahraga' => $pertandingan->cabang_olahraga,
+                'liga' => $pertandingan->liga,
+                'tim_tuan_rumah' => $pertandingan->tim_tuan_rumah,
+                'logo_tuan_rumah' => $pertandingan->logo_tuan_rumah,
+                'tim_tamu' => $pertandingan->tim_tamu,
+                'logo_tamu' => $pertandingan->logo_tamu,
+                'tanggal_pertandingan' => $pertandingan->tanggal_pertandingan,
+                'waktu_pertandingan' => $pertandingan->waktu_pertandingan,
+                'foto' => $pertandingan->foto ? asset('storage/' . $pertandingan->foto) : null, // Pastikan URL lengkap dikirim
+            ],
         ]);
     }
+
     public function ubahPertandingan(Request $request, $id)
     {
         $pertandingan = Pertandingan::find($id);
@@ -75,14 +119,37 @@ class PertandinganController extends Controller
             'logo_tamu' => 'sometimes|url',
             'tanggal_pertandingan' => 'sometimes|date',
             'waktu_pertandingan' => 'sometimes',
+            'foto' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
         ]);
 
-        $pertandingan->update($request->all());
+        // Upload foto jika ada
+        if ($request->hasFile('foto')) {
+            if ($pertandingan->foto) {
+                Storage::disk('public')->delete($pertandingan->foto);
+            }
+
+            $fotoPath = $request->file('foto')->store('pertandingan', 'public');
+            $pertandingan->foto = $fotoPath;
+        }
+
+        // Update data pertandingan
+        $pertandingan->update($request->except(['foto']));
 
         return response()->json([
             'success' => true,
             'message' => 'Pertandingan berhasil diperbarui.',
-            'data' => $pertandingan,
+            'data' => [
+                'id' => $pertandingan->id,
+                'cabang_olahraga' => $pertandingan->cabang_olahraga,
+                'liga' => $pertandingan->liga,
+                'tim_tuan_rumah' => $pertandingan->tim_tuan_rumah,
+                'logo_tuan_rumah' => $pertandingan->logo_tuan_rumah,
+                'tim_tamu' => $pertandingan->tim_tamu,
+                'logo_tamu' => $pertandingan->logo_tamu,
+                'tanggal_pertandingan' => $pertandingan->tanggal_pertandingan,
+                'waktu_pertandingan' => $pertandingan->waktu_pertandingan,
+                'foto' => $pertandingan->foto ? asset('storage/' . $pertandingan->foto) : null,
+            ],
         ]);
     }
     public function ubahStatus(Request $request, $id)
@@ -151,4 +218,8 @@ class PertandinganController extends Controller
             'data' => $pertandingan,
         ]);
     }
+
+
+
+   
 }

@@ -14,6 +14,7 @@ class Pertandingan extends Model
     protected $fillable = [
         'cabang_olahraga',
         'liga',
+        'foto',
         'tim_tuan_rumah',
         'logo_tuan_rumah',
         'tim_tamu',

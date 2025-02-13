@@ -94,7 +94,7 @@ class PertandinganController extends Controller
                 'logo_tamu' => $pertandingan->logo_tamu,
                 'tanggal_pertandingan' => $pertandingan->tanggal_pertandingan,
                 'waktu_pertandingan' => $pertandingan->waktu_pertandingan,
-                'foto' => $pertandingan->foto ? asset('storage/' . $pertandingan->foto) : null, // Pastikan URL lengkap dikirim
+                'foto' => $pertandingan->foto ? asset('storage/' . $pertandingan->foto) : null,
             ],
         ]);
     }

@@ -8,6 +8,7 @@ use Illuminate\Http\Request;
 use App\Http\Resources\MenuResources;
 use App\Http\Resources\MenuAktifResources;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Storage;
 
 
 class MenuController extends Controller
@@ -24,7 +25,6 @@ class MenuController extends Controller
             ], 403);
         }
 
-        // Validasi input termasuk gambar menu
         $validated = $request->validate([
             'nama' => 'required|string|max:255',
             'deskripsi' => 'nullable|string',
@@ -33,17 +33,16 @@ class MenuController extends Controller
             'foto' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
         ]);
 
-        // Proses upload gambar menu jika ada
+        // Handle file upload
         $fotoPath = null;
         if ($request->hasFile('foto')) {
-            $fotoPath = $request->file('foto')->store('menus', 'public'); // Simpan di storage/public/menus
+            $fotoPath = $request->file('foto')->store('menu', 'public');
         }
 
-        // Simpan menu ke database
         $menu = $venue->menus()->create([
             'nama' => $validated['nama'],
             'deskripsi' => $validated['deskripsi'],
-            'harga' => $validated['harga'],
+            'harga' => (float) $validated['harga'], // Store harga as a float
             'kategori' => $validated['kategori'],
             'foto' => $fotoPath,
         ]);
@@ -51,16 +50,60 @@ class MenuController extends Controller
         return response()->json([
             'message' => 'Menu berhasil ditambahkan',
             'code' => 201,
-            'data' => [
-                'id' => $menu->id,
-                'nama' => $menu->nama,
-                'deskripsi' => $menu->deskripsi,
-                'harga' => $menu->harga,
-                'kategori' => $menu->kategori,
-                'foto' => $fotoPath ? asset('storage/' . $fotoPath) : null, // Kirim URL jika ada gambar
-            ]
+            'data' => new MenuResources($menu)
         ], 201);
     }
+
+    public function ubahMenu(Request $request, $venueId, $menuId)
+    {
+        $adminId = Auth::id();
+        $venue = Venue::where('id', $venueId)->where('admin_id', $adminId)->first();
+
+        if (!$venue) {
+            return response()->json([
+                'message' => 'Anda tidak memiliki akses ke venue ini.',
+                'code' => 403
+            ], 403);
+        }
+
+        $menu = Menu::where('id', $menuId)->where('venue_id', $venueId)->firstOrFail();
+
+        // Validate input
+        $validated = $request->validate([
+            'nama' => 'required|string|max:255',
+            'deskripsi' => 'nullable|string',
+            'harga' => 'required|numeric|min:0',
+            'kategori' => 'required|string',
+            'foto' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
+        ]);
+
+        // Handle file upload
+        $fotoPath = $menu->foto; // Retain current foto if not changing
+        if ($request->hasFile('foto')) {
+            // Delete old foto if exists
+            if ($menu->foto) {
+                Storage::disk('public')->delete($menu->foto);
+            }
+            $fotoPath = $request->file('foto')->store('menu', 'public');
+        }
+
+        // Update menu
+        $menu->update([
+            'nama' => $validated['nama'],
+            'deskripsi' => $validated['deskripsi'],
+            'harga' => (float) $validated['harga'], // Ensure it's a float
+            'kategori' => $validated['kategori'],
+            'foto' => $fotoPath,
+        ]);
+
+        return response()->json([
+            'message' => 'Menu berhasil diperbarui',
+            'code' => 200,
+            'data' => new MenuResources($menu)
+        ], 200);
+    }
+
+
     public function ambilMenuBerdasarkanVenue($venueId)
     {
         $adminId = Auth::id();
@@ -101,27 +144,7 @@ class MenuController extends Controller
             'data' => new MenuResources($menu)
         ], 200);
     }
-    public function ubahMenu(Request $request, $venueId, $menuId)
-    {
-        $adminId = Auth::id();
-        $venue = Venue::where('id', $venueId)->where('admin_id', $adminId)->first();
 
-        if (!$venue) {
-            return response()->json([
-                'message' => 'Anda tidak memiliki akses ke venue ini.',
-                'code' => 403
-            ], 403);
-        }
-
-        $menu = Menu::where('id', $menuId)->where('venue_id', $venueId)->firstOrFail();
-        $menu->update($request->all());
-
-        return response()->json([
-            'message' => 'Menu berhasil diperbarui',
-            'code' => 200,
-            'data' => new MenuResources($menu)
-        ], 200);
-    }
     public function ubahStatusMenu($venueId, $menuId)
     {
         $adminId = Auth::id();

@@ -19,7 +19,7 @@ class MenuResources extends JsonResource
         'nama' => $this->nama,
         'deskripsi' => $this->deskripsi,
         'harga' => $this->harga,
-        'foto' => $this->foto,
+        'foto' => $this->foto ? asset('storage/' . $this->foto) : null, 
         'kategori' => $this->kategori,
         'status' => $this->kesediaan ? 'aktif' : 'tidak_aktif'
        
